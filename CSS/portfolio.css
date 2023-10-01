@@ -182,8 +182,7 @@ p{
 #orange_w_header{
     stroke: none;
     fill:#EF8354;
-    position: relative;
-    bottom: 20px;
+    width: max-content;
 }
 
 #yellow_w_header{
@@ -374,15 +373,11 @@ p{
 #orange_w_project_bottom{
     stroke: none;
     fill:#EF8354;
-    position: relative;
-    bottom: 20px;
 }
 
 #orange_w_project_top{
     stroke: none;
     fill:#EF8354;
-    position: relative;
-    top: 10px;
 }
 
 #yellow_w_project_bottom{
