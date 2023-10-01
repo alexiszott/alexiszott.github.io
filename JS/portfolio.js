@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const upArrowMenu = document.querySelector('#arrowReduceMenu');
     const menu = document.querySelector('#menu');
     const head = document.querySelector('header');
-    const HEADER_ORIGIN_HEIGHT = 300;
+    const HEADER_ORIGIN_HEIGHT = 600;
 
     //1st Carousel
     const carousel = document.querySelector('.carousel');
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalImage = document.querySelector('#modalImage');
     const closeButton = document.querySelector('.close-button');
 
-    const PROJET_ORIGIN_HEIGHT = 800;
+    const PROJET_ORIGIN_HEIGHT = 900;
     const CAROUSEL_ORIGIN_HEIGHT = 550;
 
     const topPage = document.querySelector('#topPageArrow');
@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if(!expendedMenu){
             //Height change
             const buttons = document.querySelectorAll('#menu a');
-            head.style.height = (HEADER_ORIGIN_HEIGHT + 700) + 'px';
+            head.style.height = (HEADER_ORIGIN_HEIGHT + 500) + 'px';
             menu.style.display = "flex";
 
             let index = 0;

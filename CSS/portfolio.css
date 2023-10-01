@@ -13,12 +13,14 @@ body {
 header{
     background-color: #EF8354;
     width: auto;
-    height: 300px;
+    height: 600px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding-bottom: 7%;
     transition: all 0.5s;
+    border-bottom-right-radius: 50% 100px;
+    border-bottom-left-radius: 50% 100px;
 }
 
 #topPageArrow{
@@ -64,7 +66,7 @@ header{
     margin-top: 25px;
     width: 40%;
     background-color: #2D3142;
-    border-radius: 50px 10px;
+    border-radius: 30px;
     padding: 10px;
     font-size: 50px;
     color: #EF8354;
@@ -202,20 +204,25 @@ p{
 #projects{
     background-color: #EF8354;
     margin: 0;
-    height: 800px;
-    padding-top: 50px;
+    margin-top: 150px;
+    height: 900px;
+    padding-top: 150px;
     padding-bottom: 50px;
     transition: all 0.7s;
+    border-bottom-right-radius: 50% 100px;
+    border-bottom-left-radius: 50% 100px;
+    border-top-right-radius: 50% 100px;
+    border-top-left-radius: 50% 100px;
 }
 
 #projects h2{
     margin-top: 0;
-    margin-left: 100px;
-    margin-right: 100px;
-    padding-top: 20px;
-    padding-bottom: 20px;
+    margin-left: 150px;
+    margin-right: 150px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     background-color: #2D3142;
-    border-radius: 50px 10px;
+    border-radius: 30px;
 
 }
 
