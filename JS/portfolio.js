@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let tabURL = [
         ["img/school_djikstra_1.png","img/school_djikstra_2.png","img/school_card_1.png"],
         ["img/monster_pres.png","img/monster_1.png", "img/monster_2.png", "img/monster_3.png"],
-        ["img/blender_pres.png", "img/blender_greenhouse.png", "img/blender_meteor.png", "img/blender_neocity.png","img/blender_chillLake.png"],
+        ["img/blender_pres.png", "img/blender_greenhouse.png", "img/blender_neocity.png","img/blender_chillLake.png"],
         ["img/unity_pres.png"]
     ];
 
