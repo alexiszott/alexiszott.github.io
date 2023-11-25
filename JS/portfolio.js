@@ -25,8 +25,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var indexImg = 0;
     var sectionIndex = 0;
     let tabURL = [
-        ["img/school_djikstra_1.png","img/school_djikstra_2.png","img/school_card_1.png"],
-        ["img/monster_pres.png","img/monster_1.png", "img/monster_2.png", "img/monster_3.png"],
+        ["img/school_djikstra_1.png","img/school_djikstra_2.png","img/monster_1.png", "img/monster_2.png", "img/monster_3.png"],
+        ["img/touiteur_main.png","img/touiteur_signup.png", "img/touiteur_user.png", "img/touiteur_focus_touite.png", "img/touiteur_stats.png"],
         ["img/blender_pres.png", "img/blender_greenhouse.png", "img/blender_neocity.png","img/blender_chillLake.png"],
         ["img/unity_pres.png"]
     ];
