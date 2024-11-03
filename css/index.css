@@ -1,0 +1,196 @@
+:root {
+    --main-bg-color: #222222;
+    --main-text-color: #EEEEEE;
+    --orange: #DF6C4F;
+    --dark-green: rgba(1, 58, 32, 0.75);
+    --gradient: linear-gradient(to right, #DF6C4F, #2779a7);
+}
+
+/**DF6C4F**/
+
+html, body {
+    overflow-x: hidden;
+    background-color: var(--main-bg-color);
+    scroll-behavior: smooth;
+
+}
+
+.chromatic-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    opacity: 0.1;
+    pointer-events: none;
+    background-size: 100% 4px;
+    background: linear-gradient(
+            to bottom,
+            #000,
+            #000 50%,
+            #222 50%,
+            #222
+    );
+    background-size: 100% 4px;
+    animation: gradientMove 200ms ease infinite;
+}
+
+@keyframes gradientMove {
+    0% {
+        background-size: 100% 4px
+    }
+    50% {
+        background-size: 100% 2px
+    }
+    100% {
+        background-size: 100% 4px
+    }
+}
+
+@keyframes pulse {
+    0% {
+        opacity: .9;
+        transform: skewX(.5deg);
+    }
+    25% {
+        opacity: 1;
+    }
+    50% {
+        opacity: .9;
+    }
+    75% {
+        opacity: 1;
+        transform: skewX(.5deg);
+    }
+    100% {
+        opacity: .9;
+    }
+}
+
+@keyframes chromaticMove {
+    0% {
+        text-shadow: 3px 2px 2px rgba(255, 0, 0, 1), 0px -1px 3px rgba(0, 0, 255, .5), 0px 0px -2px rgba(0, 255, 0, 1);
+    }
+    50% {
+        text-shadow: 3px 2px 2px rgba(255, 0, 0, 1), 0px -1px 3px rgba(0, 0, 255, .5), -3px 2px 3px rgba(0, 255, 0, 1);
+    }
+    100% {
+        text-shadow: 3px 2px 2px rgba(255, 0, 0, 1), 0px -1px 3px rgba(0, 0, 255, .5), 2px -1px 2px rgba(0, 255, 0, 1);
+    }
+}
+
+.suse-title {
+    font-family: "SUSE", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 700;
+    font-style: normal;
+}
+
+.anton-regular {
+    font-family: "Anton", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Anton", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: italic;
+}
+
+p, a, .btn, .btn-fermer {
+    font-family: "SUSE", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.btn-fermer {
+    transition: .25s ease
+}
+
+.title {
+    color: var(--orange);
+    text-align: center;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+    line-height: 5.9rem;
+    font-kerning: none;
+}
+
+.char {
+    transform: translateY(115px);
+    transition: transform 0.5s;
+}
+
+.square {
+    width: 100%;
+    max-width: 450px;
+    aspect-ratio: 1 / 1;
+    background-color: var(--dark-green);
+}
+
+.title-sec {
+    font-size: clamp(3rem, 4vw, 4rem);
+    color: var(--orange);
+}
+
+.title-third {
+    font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.title-prim {
+    font-size: clamp(5rem, 4vw, 9rem);
+}
+
+.underline {
+    background-color: var(--orange);
+    border-radius: 15px;
+    height: 5px;
+    width: 400px;
+    top: -50px;
+}
+
+.full_screen {
+    min-height: 100vh;
+    scroll-snap-align: start;
+}
+
+.round-corner {
+    border-radius: 0.25em;
+}
+
+.text {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    color: var(--main-text-color);
+    text-align: justify;
+}
+
+.text-project {
+    font-size: clamp(1.5rem, 4vw, 1.5rem);
+}
+
+.modal-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.pop_effect {
+    cursor: pointer;
+}
+
+.surligne {
+    color: var(--orange);
+    text-shadow: -1px 1px 1px rgba(255, 0, 0, 0.34),
+    1px 1px 1px rgba(0, 255, 0, 0.46),
+    -1px -1px 1px rgba(0, 0, 255, 0.44);
+}
+
+.bubble-passions {
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.bar {
+    width: 100%;
+}

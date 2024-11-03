@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Alexis Zott</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../css/bootstrap.css">
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/skills.css">
+    <link rel="stylesheet" href="../css/projects.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SUSE:wght@100..800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=SUSE:wght@100..800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div>
+    <h1 class="title title-sec  py-5">Trello - 2e année du BUT</h1>
+</div>
+<div class="d-flex flex-md-row flex-column align-items-center p-5">
+    <div class="col-md-5 col-12">
+        <div>
+            <p class="text mx-auto text-project">En <span class="surligne">2e année de BUT</span>, nous avons réalisé un
+                projet en groupe de quatre,
+                consistant à recréer une version de <span class="surligne">Trello</span> en <span
+                        class="surligne">Java</span> et <span class="surligne">JavaFX</span> pour la partie graphique.
+            </p>
+        </div>
+        <div>
+            <hr>
+            <p class="text mx-auto text-project">
+                Nous avons ensuite été libres <span class="surligne">d’ajouter</span> des <span class="surligne">fonctionnalités supplémentaires</span>,
+                parmi lesquelles :
+            </p>
+            <ul class="text text-project">
+                <li><span class="surligne">Mode sombre</span> pour une meilleure expérience utilisateur</li>
+                <li><span class="surligne">Marquage</span> des <span class="surligne">tâches</span> comme <span
+                        class="surligne">urgentes</span>, avec
+                    un changement visuel en conséquence
+                </li>
+                <li><span class="surligne">Archivage</span> et <span class="surligne">désarchivage</span> des listes et
+                    tâches
+                </li>
+                <li><span class="surligne">Sauvegarde</span> et <span class="surligne">chargement</span> des données
+                    depuis un fichier, permettant de retrouver les tableaux et
+                    tâches
+                    ultérieurement
+                </li>
+            </ul>
+            <hr>
+        </div>
+        <div>
+            <p class="text mx-auto text-project">
+                Plusieurs <span class="surligne">patrons de conception</span> ont été utilisés sur le projet :<br>
+            </p>
+
+            <ul class="text text-project">
+                <li><span class="surligne">MVC </span>(Modèle-Vue-Contrôleur) pour une <span
+                        class="surligne">séparation</span> claire entre la <span class="surligne">logique
+                métier</span> et <span class="surligne">l’interface graphique</span>.
+                </li>
+                <li><span class="surligne">Strategy</span> et <span class="surligne">Composite</span> pour la <span
+                        class="surligne">gestion</span>
+                    flexible des <span class="surligne">tâches</span>, avec la possibilité de <span
+                            class="surligne">gérer</span> des <span class="surligne">sous-tâches</span>
+                    et des <span class="surligne">tâches mères</span>.
+                </li>
+                <li><span class="surligne">Singleton</span> pour certains éléments de l'application nécessitant <span
+                        class="surligne">une unique instance</span>.
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-md-5 mx-auto col-12">
+        <div id="imageCarousel" class="carousel slide mx-auto" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="/images/projects/trello/trello_main.png"
+                         class="d-block w-100 img-fluid open-fullscreen"
+                         alt="Image 1">
+                </div>
+            </div>
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Précédent</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Suivant</span>
+            </button>
+        </div>
+
+        <div id="fullscreen-container" class="hidden">
+            <span id="close-fullscreen">&times;</span>
+            <img id="fullscreen-image" src="" alt="Fullscreen">
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/Flip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/EaselPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/TextPlugin.min.js"></script>
+
+<script src="../js/bootstrap.js" crossorigin></script>
+<script src="../js/index.js" type="module"></script>
+<script src="../js/images_fullscreen.js" type="module"></script>
+
+</body>
+
+</html>

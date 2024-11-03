@@ -1,0 +1,260 @@
+:root {
+    --dark-color: #222222;
+}
+
+.chromatic-aberration {
+    z-index: 5;
+    background: linear-gradient(
+            to bottom,
+            #000,
+            #000 50%,
+            #222 50%,
+            #222
+    );
+    background-size: 100% 4px;
+    animation: gradientMove 200ms ease infinite;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    mix-blend-mode: screen;
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+@keyframes gradientMove {
+    0% {
+        background-size: 100% 4px
+    }
+    50% {
+        background-size: 100% 2px
+    }
+    100% {
+        background-size: 100% 4px
+    }
+}
+
+@keyframes pulse {
+    0% {
+        opacity: .9;
+        transform: skewX(.5deg);
+    }
+    25% {
+        opacity: 1;
+    }
+    50% {
+        opacity: .9;
+    }
+    75% {
+        opacity: 1;
+        transform: skewX(.5deg);
+    }
+    100% {
+        opacity: .9;
+    }
+}
+
+@keyframes chromaticMove {
+    0% {
+        text-shadow: 3px 2px 2px rgba(255, 0, 0, 1), 0px -1px 3px rgba(0, 0, 255, .5), 0px 0px -2px rgba(0, 255, 0, 1);
+    }
+    50% {
+        text-shadow: 3px 2px 2px rgba(255, 0, 0, 1), 0px -1px 3px rgba(0, 0, 255, .5), -3px 2px 3px rgba(0, 255, 0, 1);
+    }
+    100% {
+        text-shadow: 3px 2px 2px rgba(255, 0, 0, 1), 0px -1px 3px rgba(0, 0, 255, .5), 2px -1px 2px rgba(0, 255, 0, 1);
+    }
+}
+
+.board {
+    width: 100vw;
+    height: 100vh;
+    padding: 0.25em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+    perspective: 1000px;
+    background-color: var(--dark-color);
+    position: relative;
+    z-index: 1;
+    mask-image: linear-gradient(#222222 75%, transparent);
+}
+
+
+.row-tile {
+    flex: 1;
+    display: flex;
+    gap: 0.25em;
+}
+
+.tile {
+    flex: 1;
+    position: relative;
+    transform-style: preserve-3d;
+}
+
+.tile-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 0.25em;
+    overflow: hidden;
+}
+
+.tile-front {
+    background-color: darkslategray;
+    box-shadow: -1px 1px 1px rgba(255, 0, 0, 0.34),
+    1px 1px 1px rgba(0, 255, 0, 0.46),
+    -1px -1px 1px rgba(0, 0, 255, 0.44);
+}
+
+.tile-back {
+    background-color: darkslateblue;
+    transform: rotateX(180deg);
+    box-shadow: -1px 1px 1px rgba(255, 0, 0, 0.34),
+    1px 1px 1px rgba(0, 255, 0, 0.46),
+    -1px -1px 1px rgba(0, 0, 255, 0.44);
+}
+
+.tile-front::before, .tile-back::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: 600% 600%;
+    background-position: inherit;
+    clip-path: inset(0 round 0.25em);
+}
+
+.tile-front::before {
+    background-image: url("../images/front-tile.png");
+}
+
+.tile-back::before {
+    background-image: url("../images/back-tile.png");
+}
+
+
+@media (max-width: 576px) {
+    .tile-front::before {
+        background-image: url("../images/front-mobile-tile.png");
+    }
+
+    .tile-back::before {
+        background-image: url("../images/back-mobile-tile.png");
+    }
+}
+
+
+.blocks-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 2;
+}
+
+#blocks {
+    width: 105vw;
+    height: 100vh;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    overflow: hidden;
+}
+
+.block {
+    width: 50px;
+    height: 50px;
+    border: 0.5px solid transparent;
+    transition: border-color 0.3s ease;
+}
+
+/* PROJET */
+
+.board-projet {
+    width: 100%;
+    height: 500px;
+    padding: 0.25em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+    perspective: 1000px;
+    background-color: var(--dark-color);
+    position: relative;
+    z-index: 1;
+}
+
+.tile-face-projet {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 0.25em;
+    overflow: hidden;
+}
+
+.tile-front-projet {
+    cursor: pointer;
+    background-color: darkslategray;
+    box-shadow: -1px 1px 1px rgba(255, 0, 0, 0.34),
+    1px 1px 1px rgba(0, 255, 0, 0.46),
+    -1px -1px 1px rgba(0, 0, 255, 0.44);
+}
+
+.tile-back-projet {
+    cursor: pointer;
+    background-color: darkslateblue;
+    transform: rotateX(180deg);
+    box-shadow: -1px 1px 1px rgba(255, 0, 0, 0.34),
+    1px 1px 1px rgba(0, 255, 0, 0.46),
+    -1px -1px 1px rgba(0, 0, 255, 0.44);
+}
+
+.tile-front-projet::before, .tile-back-projet::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: 600% 600%;
+    background-position: inherit;
+    clip-path: inset(0 round 0.25em);
+}
+
+/* 1 tile = 320 * 180 */
+.tile-front-projet::before {
+    background-image: url("../images/project-tile-front.png");
+}
+
+.tile-back-projet::before {
+    background-image: url("../images/project-tile-back.png");
+}
+
+.blocks-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 2;
+}
+
+#blocks-projet {
+    width: 105vw;
+    height: 100vh;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    overflow: hidden;
+}

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Alexis Zott</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../css/bootstrap.css">
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/skills.css">
+    <link rel="stylesheet" href="../css/about.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SUSE:wght@100..800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=SUSE:wght@100..800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div>
+    <h1 class="title title-sec  py-5">TodoList - 2e année du BUT</h1>
+</div>
+
+<div class="d-flex flex-md-row flex-column align-items-center p-5">
+    <div class="col-md-5 col-12">
+        <div>
+            <p class="text mx-auto text-project">Le but de ce projet était de refaire une TodoList en utilisant Dart et
+                Flutter.
+                C'est un projet assez classique du développement mobile mais il nous a permit de nous familliariser avec
+                Flutter et Dart.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-5 mx-auto col-12">
+        <div id="imageCarousel" class="carousel slide mx-auto" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="/images/projects/touiteur/touiteur_main.png"
+                         class="d-block w-100 img-fluid open-fullscreen"
+                         alt="Image 1">
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel"
+                    data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Précédent</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel"
+                    data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Suivant</span>
+            </button>
+        </div>
+
+        <div id="fullscreen-container" class="hidden">
+            <span id="close-fullscreen">&times;</span>
+            <img id="fullscreen-image" src="" alt="Fullscreen">
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/Flip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/EaselPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/TextPlugin.min.js"></script>
+
+<script src="../js/bootstrap.js" crossorigin></script>
+<script src="../js/index.js" type="module"></script>
+<script src="../js/images_fullscreen.js" type="module"></script>
+</body>
+
+</html>
