@@ -1,5 +1,4 @@
 import {setAnimCompetence} from "./competence_effet_button.js";
-import {setOpenProjectsList} from "./competence_liste.js";
 import {pop_effect_} from "./projet_pop_effect.js";
 import {title_effect} from "./split_title_effect.js";
 import {text_appear} from "./appear_effect.js";

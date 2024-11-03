@@ -28,7 +28,6 @@ function createTiles(row, col) {
     index_domain++;
 
     const bgPosition = `${col * 20}% ${row * 20}%`;
-    console.log(row + " " + col)
     tile.querySelector(".tile-front-projet").style.backgroundPosition = bgPosition;
     tile.querySelector(".tile-back-projet").style.backgroundPosition = bgPosition;
 
