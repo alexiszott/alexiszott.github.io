@@ -255,18 +255,14 @@ p, a, .btn, .btn-fermer {
 
 .competence-container {
     position: relative;
-    margin-top: 3rem;
-    margin-bottom: 3rem;
 }
 
 .competence {
-    background: var(--default-color-card);
     width: auto;
     height: 6.5rem;
     position: relative;
     overflow: hidden;
     cursor: pointer;
-    max-width: 30rem;
 }
 
 .content {
