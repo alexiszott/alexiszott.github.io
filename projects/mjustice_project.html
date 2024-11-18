@@ -8,9 +8,7 @@
     <link rel="stylesheet" href="../css/bootstrap.css">
     <link rel="stylesheet" href="../css/index.css">
     <link rel="stylesheet" href="../css/skills.css">
-    <link rel="stylesheet" href="../css/about.css">
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../css/projects.css">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,8 +20,86 @@
 </head>
 <body>
 <div>
-    <h1 class="title title-sec  py-5">Stage : Ministère de la Justice</h1>
+    <h1 class="title title-sec  py-5">Ministère de la Justice stage - 2e année du BUT</h1>
 </div>
+<div class="d-flex flex-md-row flex-column align-items-center p-5">
+    <div class="col-md-5 col-12">
+        <div>
+            <p class="text mx-auto text-project">J'ai effectué un <span class="surligne">stage en informatique</span>
+                d'une durée de <span class="surligne">8 semaines</span> au sein du <span class="surligne">DIT</span>
+                (département de l’informatique et des télécommunications) du <span class="surligne">Ministère de la Justice</span> de Nancy.
+            </p>
+        </div>
+        <div>
+            <hr>
+            <p class="text mx-auto text-project">
+                Durant ce stage, j'ai <span class="surligne">redéveloppé</span> un site web nommé « <span class="surligne">Déploiements</span> ».
+                Il permet de suivre les <span class="surligne">déploiements de matériels informatiques</span>, tels que des <span class="surligne">ordinateurs</span>,
+                des <span class="surligne">écrans</span> et des <span class="surligne">imprimantes</span>, effectués par des <span class="surligne">techniciens</span> dans différents secteurs.
+            </p>
+        </div>
+        <div>
+            <hr>
+            <p class="text mx-auto text-project">
+                J'ai également <span class="surligne">développé</span> deux <span class="surligne">sites web</span> plus petits.
+                Le <span class="surligne">portail SIP</span> est une page de regroupement de <span class="surligne">liens</span> qui permet de centraliser
+                les sites les plus <span class="surligne">utilisés</span> par les membres du <span class="surligne">DIT</span>. J’ai dû effectuer
+                une <span class="surligne">refonte</span> de ce site pour le mettre au goût du jour en améliorant son <span class="surligne">UX/UI</span>
+                et le rendre plus facilement <span class="surligne">maintenable</span>.<br><br>
+                Le second site permet de suivre le <span class="surligne">matériel</span> d’une <span class="surligne">salle de stockage</span>.
+                Pour cela, on doit enregistrer les <span class="surligne">entrées</span> et les <span class="surligne">sorties</span> de la salle avec un <span class="surligne">scanner</span>.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="col-md-5 mx-auto col-12">
+        <div id="imageCarousel" class="carousel slide mx-auto" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="/images/projects/mjustice/deploiement_colvis.webp"
+                         class="d-block w-100 img-fluid open-fullscreen"
+                         alt="Image 1">
+                </div>
+                <div class="carousel-item">
+                    <img src="/images/projects/mjustice/nouveau_graphiques.webp"
+                         class="d-block w-100 img-fluid open-fullscreen"
+                         alt="Image 2">
+                </div>
+                <div class="carousel-item">
+                    <img src="/images/projects/mjustice/nouveau_menu.webp"
+                         class="d-block w-100 img-fluid open-fullscreen"
+                         alt="Image 3">
+                </div>
+                <div class="carousel-item">
+                    <img src="/images/projects/mjustice/portail.webp"
+                         class="d-block w-100 img-fluid open-fullscreen"
+                         alt="Image 4">
+                </div>
+                <div class="carousel-item">
+                    <img src="/images/projects/mjustice/scan_principale.webp"
+                         class="d-block w-100 img-fluid open-fullscreen"
+                         alt="Image 5">
+                </div>
+            </div>
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Précédent</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Suivant</span>
+            </button>
+        </div>
+
+        <div id="fullscreen-container" class="hidden">
+            <span id="close-fullscreen">&times;</span>
+            <img id="fullscreen-image" src="" alt="Fullscreen">
+        </div>
+    </div>
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/Flip.min.js"></script>
@@ -32,6 +108,8 @@
 
 <script src="../js/bootstrap.js" crossorigin></script>
 <script src="../js/index.js" type="module"></script>
+<script src="../js/images_fullscreen.js" type="module"></script>
+
 </body>
 
 </html>

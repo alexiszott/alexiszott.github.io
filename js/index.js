@@ -5,7 +5,7 @@ import {text_appear} from "./appear_effect.js";
 import {comp_appear} from "./competence_appear_effect.js";
 import {initTileMain} from "./tile_main.js";
 import {initTileProjet} from "./tile_projet.js";
-import {setOpenProjectsListV2} from "./competence_liste_v2.js";
+import {setOpenProjectsListV2} from "./competence_liste.js";
 
 document.addEventListener("DOMContentLoaded", function () {
     setAnimCompetence();
