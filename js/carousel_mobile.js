@@ -11,6 +11,8 @@ document.addEventListener("DOMContentLoaded", function () {
     focus: "center",
     breakpoints: {
       768: {
+        perPage: 1,
+        gap: "1rem",
         padding: { left: "5%", right: "5%" },
       },
     },
