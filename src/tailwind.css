@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/** orange base : #df6c4f **/
+/** blue base : #4c49ea **/
+
+@theme {
+  --color-burnt-peach-50: rgb(251 237 233);
+  --color-burnt-peach-100: rgb(247 219 212);
+  --color-burnt-peach-200: rgb(239 183 169);
+  --color-burnt-peach-300: rgb(231 147 126);
+  --color-burnt-peach-400: rgb(223 111 83);
+  --color-burnt-peach-500: rgb(215 75 40);
+  --color-burnt-peach-600: rgb(172 60 32);
+  --color-burnt-peach-700: rgb(129 45 24);
+  --color-burnt-peach-800: rgb(86 30 16);
+  --color-burnt-peach-900: rgb(43 15 8);
+  --color-burnt-peach-950: rgb(30 10 6);
+
+  --color-majorelle-blue-50: rgb(233 232 252);
+  --color-majorelle-blue-100: rgb(210 209 250);
+  --color-majorelle-blue-200: rgb(165 164 244);
+  --color-majorelle-blue-300: rgb(120 118 239);
+  --color-majorelle-blue-400: rgb(75 72 234);
+  --color-majorelle-blue-500: rgb(30 27 228);
+  --color-majorelle-blue-600: rgb(24 21 183);
+  --color-majorelle-blue-700: rgb(18 16 137);
+  --color-majorelle-blue-800: rgb(12 11 91);
+  --color-majorelle-blue-900: rgb(6 5 46);
+  --color-majorelle-blue-950: rgb(4 4 32);
+}
