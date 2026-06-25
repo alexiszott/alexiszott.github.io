@@ -1,0 +1,1388 @@
+import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import { gsap } from "gsap";
+
+// Customizable timeline data for sub-items and popovers
+const subItemsData = {
+  bac: {
+    id: "bac",
+    emoji: "🎓",
+    year: "2018 - 2022",
+    title: "Bac technologique",
+    institution: "Lycée Boutet de Monvel - Lunéville",
+    date: "2018 - 2022",
+    details: "BAC Technologique STI2D. Obtenu avec mention bien.",
+  },
+  "stage-justice": {
+    id: "stage-justice",
+    emoji: "⚖️",
+    year: "2024",
+    title: "Stage - Ministère de la Justice",
+    institution: "Ministère de la Justice - Nancy",
+    date: "Mai - Juin 2024 (8 semaines)",
+    details:
+      "Stage de 8 semaines au sein du Ministère de la Justice de Nancy durant ma seconde année de BUT. Développement d'un site web interne visant à améliorer la gestion des déploiements de matériel.",
+  },
+  "stage-netlor": {
+    id: "stage-netlor",
+    emoji: "🏊‍♂️",
+    year: "2025",
+    title: "Stage - Netlor",
+    institution: "Netlor - Nancy",
+    date: "Février - Mai 2025 (14 semaines)",
+    details:
+      "Stage de 14 semaines au sein de l'entreprise Netlor (Nancy) durant ma troisième année de BUT. Développement d'une application mobile visant à aider les maître nageurs, migration d'API et de base de données.",
+  },
+  "but-diplome": {
+    id: "but-diplome",
+    emoji: "💻",
+    year: "2025",
+    title: "Obtention du BUT Informatique RA-IL",
+    institution: "IUT Charlemagne - Nancy",
+    date: "2025",
+    details:
+      "BUT en Informatique, parcours RA-IL (Réalisation d'applications - Ingénierie logicielle). Formation complète couvrant le génie logiciel, le web, le réseaux et les bases de données.",
+  },
+  "utt-etranger": {
+    id: "utt-etranger",
+    emoji: "✈️",
+    year: "2027",
+    title: "Semestre étranger (à venir)",
+    institution: "? ? ?",
+    date: "Mars 2027",
+    details:
+      "Semestre d'études à l'étranger obligatoire dans une université partenaire dans le cadre du cursus d'ingénieur.",
+  },
+  "utt-stage": {
+    id: "utt-stage",
+    emoji: "💼",
+    year: "2027",
+    title: "Stage de fin d'étude (à venir)",
+    institution: "? ? ?",
+    date: "Septembre 2027 (6 mois)",
+    details: "Stage de fin d'études d'ingénieur.",
+  },
+  "utt-diplome": {
+    id: "utt-diplome",
+    emoji: "🎓",
+    year: "2025 - 2028",
+    title: "Cycle ingénieur UTT",
+    institution: "Université de Technologie de Troyes (UTT)",
+    date: "2025 - 2028 (en cours)",
+    details:
+      "Formation d'ingénieur en Informatique et Systèmes d'Information (ISI). Approfondissement en architecture logicielle, sécurité des réseaux, IA et gestion de projets complexes.",
+  },
+};
+
+export default function Timeline() {
+  const [expandedGroupId, setExpandedGroupId] = useState(null);
+  const [activeId, setActiveId] = useState(null);
+  const [popoverCoords, setPopoverCoords] = useState({ top: 0, left: 0 });
+  const prevFlippedStatesRef = useRef({});
+
+  const activeJalon = subItemsData[activeId];
+
+  const toggleGroup = (groupId) => {
+    setExpandedGroupId(expandedGroupId === groupId ? null : groupId);
+    setActiveId(null);
+  };
+
+  const handleButtonClick = (e, id) => {
+    e.stopPropagation();
+    if (activeId === id) {
+      setActiveId(null);
+    } else {
+      const buttonRect = e.currentTarget.getBoundingClientRect();
+      setPopoverCoords({
+        top: window.scrollY + buttonRect.top - 12,
+        left: window.scrollX + buttonRect.left + buttonRect.width / 2,
+      });
+      setActiveId(id);
+    }
+  };
+
+  // Close popover on window scroll or resize to keep position in sync
+  useEffect(() => {
+    const handleClose = () => setActiveId(null);
+    window.addEventListener("resize", handleClose);
+    window.addEventListener("scroll", handleClose, { passive: true });
+    return () => {
+      window.removeEventListener("resize", handleClose);
+      window.removeEventListener("scroll", handleClose);
+    };
+  }, []);
+
+  // Exact 3D flip animation matching Board's tiles behavior
+  useEffect(() => {
+    const tilts = [-30, 25, -15, 30, -10, 15, -20];
+    const itemIds = [
+      "bac",
+      "but-header",
+      "stage-justice",
+      "stage-netlor",
+      "but-diplome",
+      "utt-header",
+      "utt-etranger",
+      "utt-stage",
+      "utt-diplome",
+    ];
+
+    itemIds.forEach((id, idx) => {
+      const isFlipped =
+        activeId === id ||
+        (id === "but-header" && expandedGroupId === "but") ||
+        (id === "utt-header" && expandedGroupId === "utt");
+
+      const wasFlipped = !!prevFlippedStatesRef.current[id];
+      if (isFlipped === wasFlipped) {
+        // No change in flip state, skip animating this jalon
+        return;
+      }
+
+      // Update ref state
+      prevFlippedStatesRef.current[id] = isFlipped;
+
+      const buttons = document.querySelectorAll(`[data-timeline-btn="${id}"]`);
+      const tiltX = tilts[idx % tilts.length];
+
+      buttons.forEach((btn) => {
+        if (isFlipped) {
+          gsap
+            .timeline()
+            .set(btn, { transformPerspective: 1000 })
+            .to(btn, {
+              rotateY: 450,
+              rotateX: tiltX,
+              duration: 0.5,
+              ease: "power2.out",
+            })
+            .to(
+              btn,
+              {
+                rotateY: 540,
+                rotateX: 0,
+                duration: 0.5,
+                ease: "power2.out",
+              },
+              "-=0.25",
+            );
+        } else {
+          const currentRotateY = gsap.getProperty(btn, "rotateY");
+          if (Math.abs(currentRotateY) > 0.1) {
+            gsap
+              .timeline()
+              .to(btn, {
+                rotateY: 990,
+                rotateX: tiltX,
+                duration: 0.5,
+                ease: "power2.out",
+              })
+              .to(
+                btn,
+                {
+                  rotateY: 1080,
+                  rotateX: 0,
+                  duration: 0.5,
+                  ease: "power2.out",
+                  onComplete: () => {
+                    gsap.set(btn, { rotateY: 0, rotateX: 0 });
+                  },
+                },
+                "-=0.25",
+              );
+          } else {
+            gsap.set(btn, { rotateY: 0, rotateX: 0 });
+          }
+        }
+      });
+    });
+  }, [activeId, expandedGroupId]);
+
+  const renderPopoverContent = (jalon) => (
+    <>
+      <div className="relative flex justify-between items-center mb-2 z-10 gap-3">
+        <h4 className="text-lg font-bold text-burnt-peach-400 md:text-xl">
+          {jalon.title}
+        </h4>
+        <button
+          onClick={() => setActiveId(null)}
+          className="text-gray-400 hover:text-burnt-peach-400 transition-colors p-1 rounded-full hover:bg-neutral-800 cursor-pointer shrink-0"
+        >
+          <i className="fa-solid fa-xmark text-sm md:text-base leading-none"></i>
+        </button>
+      </div>
+      <div className="relative z-10">
+        <p className="text-xs md:text-sm font-semibold text-majorelle-blue-300 mb-2">
+          {jalon.institution}
+        </p>
+        <p className="text-[11px] md:text-xs italic text-gray-400 mb-3">
+          {jalon.date}
+        </p>
+        <p className="text-xs md:text-sm text-gray-300 leading-relaxed">
+          {jalon.details}
+        </p>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="timeline-root-container relative w-full max-w-6xl mx-auto overflow-visible">
+      <h2 className="text-3xl font-semibold text-burnt-peach-700 mb-4">
+        Mon Parcours
+      </h2>
+
+      {activeId !== null && (
+        <div
+          className="fixed inset-0 z-45 bg-black/40 backdrop-blur-xs md:bg-transparent md:backdrop-blur-none transition-opacity duration-300"
+          onClick={() => setActiveId(null)}
+        />
+      )}
+
+      {/* 1. MOBILE TIMELINE (Vertical, block md:hidden) */}
+      <div className="block md:hidden relative py-4 overflow-visible">
+        <div className="absolute left-8 top-[22px] bottom-[40px] w-[8px] bg-burnt-peach-400 -translate-x-1/2 z-0"></div>
+        <div className="flex flex-col overflow-visible">
+          {/* BAC */}
+          <div className="relative flex items-start pb-12 overflow-visible">
+            <div className="absolute left-8 top-[22px] bottom-[-22px] w-[8px] -translate-x-1/2 bg-burnt-peach-400 z-0"></div>
+            <button
+              onClick={() => setActiveId(activeId === "bac" ? null : "bac")}
+              data-timeline-btn="bac"
+              className={`absolute left-8 top-0 -translate-x-1/2 z-10 w-11 h-11 rounded-lg shadow-md cursor-pointer transition-shadow duration-300 outline-none select-none hover:scale-108 p-0 border-0 ${activeId === "bac" ? "shadow-[0_0_12px_rgba(215,75,40,0.5)]" : "hover:shadow-[0_0_12px_rgba(223,111,83,0.35)]"}`}
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                <span className="select-none z-10">🎓</span>
+                <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+              </div>
+              <div
+                className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                style={{ transform: "rotateY(180deg)" }}
+              >
+                <span className="select-none z-10">🎓</span>
+                <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+              </div>
+            </button>
+            <div
+              onClick={() => setActiveId(activeId === "bac" ? null : "bac")}
+              className="pl-20 min-h-[44px] pt-1 cursor-pointer grow text-left"
+            >
+              <span className="text-base whitespace-nowrap font-bold text-burnt-peach-600 block">
+                2018 - 2022
+              </span>
+              <p
+                className={`text-lg font-bold mt-2 transition-colors duration-200 ${activeId === "bac" ? "text-burnt-peach-500" : "text-burnt-peach-800"}`}
+              >
+                Bac Technologique
+              </p>
+            </div>
+          </div>
+
+          {/* BUT */}
+          <div className="relative overflow-visible">
+            <div className="relative flex items-start pb-12 overflow-visible">
+              <div
+                className={`absolute left-8 top-[22px] bottom-[-22px] w-[8px] -translate-x-1/2 z-0 transition-colors duration-500 ${expandedGroupId === "but" ? "bg-majorelle-blue-500" : "bg-burnt-peach-400"}`}
+              ></div>
+              <button
+                onClick={() => toggleGroup("but")}
+                data-timeline-btn="but-header"
+                className={`absolute left-8 top-0 -translate-x-1/2 z-10 w-11 h-11 rounded-lg shadow-md cursor-pointer transition-shadow duration-300 outline-none select-none hover:scale-108 p-0 border-0 ${expandedGroupId === "but" ? "shadow-[0_0_12px_rgba(215,75,40,0.5)]" : "hover:shadow-[0_0_12px_rgba(223,111,83,0.35)]"}`}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                  <span className="select-none z-10">💻</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+                <div
+                  className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                  style={{ transform: "rotateY(180deg)" }}
+                >
+                  <span className="select-none z-10">💻</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+              </button>
+              <div
+                onClick={() => toggleGroup("but")}
+                className="pl-20 min-h-[44px] min-h-[44px] pt-1 cursor-pointer grow text-left"
+              >
+                <span className="text-base whitespace-nowrap font-bold text-burnt-peach-600 block">
+                  2022 - 2025
+                </span>
+                <p
+                  className={`text-lg font-bold mt-2 transition-colors duration-200 ${expandedGroupId === "but" ? "text-burnt-peach-500" : "text-burnt-peach-800"}`}
+                >
+                  BUT Informatique
+                </p>
+              </div>
+            </div>
+
+            <div
+              className="pl-0 overflow-hidden transition-all duration-500 ease-in-out"
+              style={{
+                maxHeight: expandedGroupId === "but" ? "1000px" : "0px",
+                opacity: expandedGroupId === "but" ? 1 : 0,
+                overflow: expandedGroupId === "but" ? "visible" : "hidden",
+              }}
+            >
+              <div className="relative flex items-start pb-12 overflow-visible">
+                <div className="absolute left-8 top-[22px] bottom-[-22px] w-[8px] -translate-x-1/2 bg-majorelle-blue-500 z-0"></div>
+                <button
+                  onClick={() =>
+                    setActiveId(
+                      activeId === "stage-justice" ? null : "stage-justice",
+                    )
+                  }
+                  data-timeline-btn="stage-justice"
+                  className={`absolute left-8 top-0 -translate-x-1/2 z-10 w-11 h-11 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "stage-justice" ? "shadow-[0_0_12px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_12px_rgba(223,111,83,0.35)]"}`}
+                  style={{ transformStyle: "preserve-3d" }}
+                >
+                  <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                    <span className="select-none z-10">⚖️</span>
+                    <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                  </div>
+                  <div
+                    className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                    style={{ transform: "rotateY(180deg)" }}
+                  >
+                    <span className="select-none z-10">⚖️</span>
+                    <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                  </div>
+                </button>
+                <div
+                  onClick={() =>
+                    setActiveId(
+                      activeId === "stage-justice" ? null : "stage-justice",
+                    )
+                  }
+                  className="pl-20 min-h-[44px] pt-1 cursor-pointer grow text-left"
+                >
+                  <span className="text-base whitespace-nowrap font-bold text-burnt-peach-600 block">
+                    2024
+                  </span>
+                  <p
+                    className={`text-lg font-bold mt-2 transition-colors duration-200 ${activeId === "stage-justice" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                  >
+                    Stage - Ministère de la Justice
+                  </p>
+                </div>
+              </div>
+
+              <div className="relative flex items-start pb-12 overflow-visible">
+                <div className="absolute left-8 top-[22px] bottom-[-22px] w-[8px] -translate-x-1/2 bg-majorelle-blue-500 z-0"></div>
+                <button
+                  onClick={() =>
+                    setActiveId(
+                      activeId === "stage-netlor" ? null : "stage-netlor",
+                    )
+                  }
+                  data-timeline-btn="stage-netlor"
+                  className={`absolute left-8 top-0 -translate-x-1/2 z-10 w-11 h-11 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "stage-netlor" ? "shadow-[0_0_12px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_12px_rgba(223,111,83,0.35)]"}`}
+                  style={{ transformStyle: "preserve-3d" }}
+                >
+                  <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                    <span className="select-none z-10">🏊‍♂️</span>
+                    <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                  </div>
+                  <div
+                    className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                    style={{ transform: "rotateY(180deg)" }}
+                  >
+                    <span className="select-none z-10">🏊‍♂️</span>
+                    <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                  </div>
+                </button>
+                <div
+                  onClick={() =>
+                    setActiveId(
+                      activeId === "stage-netlor" ? null : "stage-netlor",
+                    )
+                  }
+                  className="pl-20 min-h-[44px] pt-1 cursor-pointer grow text-left"
+                >
+                  <span className="text-base whitespace-nowrap font-bold text-burnt-peach-600 block">
+                    2025
+                  </span>
+                  <p
+                    className={`text-lg font-bold mt-2 transition-colors duration-200 ${activeId === "stage-netlor" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                  >
+                    Stage - Netlor
+                  </p>
+                </div>
+              </div>
+
+              <div className="relative flex items-start pb-12 overflow-visible">
+                <div className="absolute left-8 top-[22px] bottom-[-22px] w-[8px] -translate-x-1/2 bg-burnt-peach-400 z-0"></div>
+                <button
+                  onClick={() =>
+                    setActiveId(
+                      activeId === "but-diplome" ? null : "but-diplome",
+                    )
+                  }
+                  data-timeline-btn="but-diplome"
+                  className={`absolute left-8 top-0 -translate-x-1/2 z-10 w-11 h-11 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "but-diplome" ? "shadow-[0_0_12px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_12px_rgba(223,111,83,0.35)]"}`}
+                  style={{ transformStyle: "preserve-3d" }}
+                >
+                  <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                    <span className="select-none z-10">💻</span>
+                    <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                  </div>
+                  <div
+                    className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                    style={{ transform: "rotateY(180deg)" }}
+                  >
+                    <span className="select-none z-10">💻</span>
+                    <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                  </div>
+                </button>
+                <div
+                  onClick={() =>
+                    setActiveId(
+                      activeId === "but-diplome" ? null : "but-diplome",
+                    )
+                  }
+                  className="pl-20 min-h-[44px] pt-1 cursor-pointer grow text-left"
+                >
+                  <span className="text-base whitespace-nowrap font-bold text-burnt-peach-600 block">
+                    2025
+                  </span>
+                  <p
+                    className={`text-lg font-bold mt-2 transition-colors duration-200 ${activeId === "but-diplome" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                  >
+                    Obtention du BUT Informatique RA-IL
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* UTT */}
+          <div className="relative overflow-visible">
+            <div className="relative flex items-start pb-12 overflow-visible">
+              {expandedGroupId === "utt" && (
+                <div className="absolute left-8 top-[22px] bottom-[-22px] w-[8px] -translate-x-1/2 bg-majorelle-blue-500 z-0 transition-colors duration-500"></div>
+              )}
+              {expandedGroupId !== "utt" && (
+                <div className="absolute left-8 top-[44px] -translate-x-1/2 w-0 h-0 border-x-[10px] border-x-transparent border-t-[14px] border-t-burnt-peach-400 z-0"></div>
+              )}
+              <button
+                onClick={() => toggleGroup("utt")}
+                data-timeline-btn="utt-header"
+                className={`absolute left-8 top-0 -translate-x-1/2 z-10 w-11 h-11 rounded-lg shadow-md cursor-pointer transition-shadow duration-300 p-0 border-0 ${expandedGroupId === "utt" ? "shadow-[0_0_12px_rgba(215,75,40,0.5)]" : "hover:shadow-[0_0_12px_rgba(223,111,83,0.4)]"}`}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                  <span className="select-none z-10">🚀</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+                <div
+                  className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                  style={{ transform: "rotateY(180deg)" }}
+                >
+                  <span className="select-none z-10">🚀</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+              </button>
+              <div
+                onClick={() => toggleGroup("utt")}
+                className="pl-20 min-h-[44px] pt-1 cursor-pointer grow text-left"
+              >
+                <span className="text-base whitespace-nowrap font-bold text-burnt-peach-600 block">
+                  2025 - 2028
+                </span>
+                <p
+                  className={`text-lg font-bold mt-2 transition-colors duration-200 ${expandedGroupId === "utt" ? "text-burnt-peach-500" : "text-burnt-peach-800"}`}
+                >
+                  Cycle Ingénieur Informatique
+                </p>
+              </div>
+            </div>
+
+            <div
+              className="pl-0 overflow-hidden transition-all duration-500 ease-in-out"
+              style={{
+                maxHeight: expandedGroupId === "utt" ? "1000px" : "0px",
+                opacity: expandedGroupId === "utt" ? 1 : 0,
+                overflow: expandedGroupId === "utt" ? "visible" : "hidden",
+              }}
+            >
+              {/* Sub-item: Départ semestre étranger */}
+              <div className="relative flex items-start pb-12 overflow-visible">
+                <div className="absolute left-8 top-[22px] bottom-[-22px] w-[8px] -translate-x-1/2 bg-majorelle-blue-500 z-0"></div>
+                <button
+                  onClick={() =>
+                    setActiveId(
+                      activeId === "utt-etranger" ? null : "utt-etranger",
+                    )
+                  }
+                  data-timeline-btn="utt-etranger"
+                  className={`absolute left-8 top-0 -translate-x-1/2 z-10 w-11 h-11 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "utt-etranger" ? "shadow-[0_0_12px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_12px_rgba(223,111,83,0.35)]"}`}
+                  style={{ transformStyle: "preserve-3d" }}
+                >
+                  <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                    <span className="select-none z-10">✈️</span>
+                    <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                  </div>
+                  <div
+                    className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                    style={{ transform: "rotateY(180deg)" }}
+                  >
+                    <span className="select-none z-10">✈️</span>
+                    <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                  </div>
+                </button>
+                <div
+                  onClick={() =>
+                    setActiveId(
+                      activeId === "utt-etranger" ? null : "utt-etranger",
+                    )
+                  }
+                  className="pl-20 min-h-[44px] pt-1 cursor-pointer grow text-left"
+                >
+                  <span className="text-base whitespace-nowrap font-bold text-burnt-peach-600 block">
+                    Mars 2027
+                  </span>
+                  <p
+                    className={`text-lg font-bold mt-2 transition-colors duration-200 ${activeId === "utt-etranger" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                  >
+                    Départ semestre étranger
+                  </p>
+                </div>
+              </div>
+
+              {/* Sub-item: Stage de fin d'étude */}
+              <div className="relative flex items-start pb-12 overflow-visible">
+                <div className="absolute left-8 top-[22px] bottom-[-22px] w-[8px] -translate-x-1/2 bg-majorelle-blue-500 z-0"></div>
+                <button
+                  onClick={() =>
+                    setActiveId(activeId === "utt-stage" ? null : "utt-stage")
+                  }
+                  data-timeline-btn="utt-stage"
+                  className={`absolute left-8 top-0 -translate-x-1/2 z-10 w-11 h-11 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "utt-stage" ? "shadow-[0_0_12px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_12px_rgba(223,111,83,0.35)]"}`}
+                  style={{ transformStyle: "preserve-3d" }}
+                >
+                  <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                    <span className="select-none z-10">💼</span>
+                    <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                  </div>
+                  <div
+                    className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                    style={{ transform: "rotateY(180deg)" }}
+                  >
+                    <span className="select-none z-10">💼</span>
+                    <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                  </div>
+                </button>
+                <div
+                  onClick={() =>
+                    setActiveId(activeId === "utt-stage" ? null : "utt-stage")
+                  }
+                  className="pl-20 min-h-[44px] pt-1 cursor-pointer grow text-left"
+                >
+                  <span className="text-base whitespace-nowrap font-bold text-burnt-peach-600 block">
+                    Septembre 2027
+                  </span>
+                  <p
+                    className={`text-lg font-bold mt-2 transition-colors duration-200 ${activeId === "utt-stage" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                  >
+                    Stage de fin d'étude
+                  </p>
+                </div>
+              </div>
+
+              {/* Sub-item: Cycle d'Ingénieur UTT */}
+              <div className="relative flex items-start pb-12 overflow-visible">
+                <div className="absolute left-8 top-[44px] -translate-x-1/2 w-0 h-0 border-x-[10px] border-x-transparent border-t-[14px] border-t-majorelle-blue-500 z-0"></div>
+                <button
+                  onClick={() =>
+                    setActiveId(
+                      activeId === "utt-diplome" ? null : "utt-diplome",
+                    )
+                  }
+                  data-timeline-btn="utt-diplome"
+                  className={`absolute left-8 top-0 -translate-x-1/2 z-10 w-11 h-11 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "utt-diplome" ? "shadow-[0_0_12px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_12px_rgba(223,111,83,0.35)]"}`}
+                  style={{ transformStyle: "preserve-3d" }}
+                >
+                  <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                    <span className="select-none z-10">🎓</span>
+                    <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                  </div>
+                  <div
+                    className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                    style={{ transform: "rotateY(180deg)" }}
+                  >
+                    <span className="select-none z-10">🎓</span>
+                    <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                  </div>
+                </button>
+                <div
+                  onClick={() =>
+                    setActiveId(
+                      activeId === "utt-diplome" ? null : "utt-diplome",
+                    )
+                  }
+                  className="pl-20 min-h-[44px] pt-1 cursor-pointer grow text-left"
+                >
+                  <span className="text-base font-bold text-burnt-peach-600 block">
+                    2025 - 2028
+                  </span>
+                  <p
+                    className={`text-lg font-bold mt-2 transition-colors duration-200 ${activeId === "utt-diplome" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                  >
+                    Cycle Ingénieur UTT
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+{"step_index":396,"source":"MODEL","type":"VIEW_FILE","status":"DONE","created_at":"2026-06-25T15:57:33Z","content":"Created At: 2026-06-25T15:57:33Z\nCompleted At: 2026-06-25T15:57:33Z\nFile Path: `file:///Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/components/Timeline.jsx`\nTotal Lines: 1122\nTotal Bytes: 57249\nShowing lines 685 to 705\nThe following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.\n685:         </div>\n686:       </div>\n687: \n688:       {/* 2. DESKTOP TIMELINE (Horizontal, hidden md:block) */}\n689:       <div className=\"hidden md:block relative w-full overflow-visible py-0 perspective-[1000px]\">\n690:         <div\n691:           onScroll={() => setActiveId(null)}\n692:           className=\"relative w-full h-[135px] flex justify-start items-center px-6 overflow-x-auto overflow-y-visible scrollbar-thin\"\n693:         >\n694:           {/* BAC */}\n695:           <div className=\"relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible\">\n696:             <div className=\"absolute top-1/2 -translate-y-1/2 left-1/2 w-40 h-[8px] bg-burnt-peach-400 z-0\"></div>\n697:             <div className=\"absolute top-[5px] h-8 flex items-end justify-center\">\n698:               <span\n699:                 className={`text-lg font-bold transition-colors duration-200 ${activeId === \"bac\" ? \"text-burnt-peach-500\" : \"text-burnt-peach-600\"}`}\n700:               >\n701:                 2018 - 2022\n702:               </span>\n703:             </div>\n704:             <button\n705:               onClick={(e) => handleButtonClick(e, \"bac\")}\nThe above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.\n"}
+{"step_index":397,"source":"MODEL","type":"PLANNER_RESPONSE","status":"DONE","created_at":"2026-06-25T15:57:33Z","content":"I will view lines 670 to 695 of `Timeline.jsx` to extract the exact trailing content of the mobile timeline section for replacement.","thinking":"**Analyzing the Timeline Structure**\n\nI've pinpointed the desktop timeline's starting point on line 688. The mobile timeline block is neatly bracketed between lines 244 and 687. Now, I'm leaning toward a complete substitution. I'm thinking of replacing that mobile section with the cleaner, single-column design.\n\n\n**Implementing the Code Change**\n\nI'm now writing out the exact replacement content, from lines 244 to 687 of `Timeline.jsx`, which is about 440 lines. I plan to use `replace_file_content` for a clean substitution of the mobile timeline block. I am focusing on this clean mobile solution, hoping to replace the section.\n\n\n","tool_calls":[{"name":"view_file","args":{"AbsolutePath":"\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/components/Timeline.jsx\"","EndLine":"695","StartLine":"670","toolAction":"\"Viewing mobile vertical timeline trailing boundary\"","toolSummary":"\"Viewing Timeline file segment 24\""}}]}
+{"step_index":398,"source":"MODEL","type":"VIEW_FILE","status":"DONE","created_at":"2026-06-25T15:57:36Z","content":"Created At: 2026-06-25T15:57:36Z\nCompleted At: 2026-06-25T15:57:36Z\nFile Path: `file:///Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/components/Timeline.jsx`\nTotal Lines: 1122\nTotal Bytes: 57249\nShowing lines 670 to 695\nThe following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.\n670:                   }\n671:                   className=\"pl-4 min-h-[44px] pt-1 cursor-pointer grow text-left\"\n672:                 >\n673:                   <span className=\"text-base font-bold text-burnt-peach-600 block\">\n674:                     2025 - 2028\n675:                   </span>\n676:                   <p\n677:                     className={`text-lg font-bold mt-2 transition-colors duration-200 ${activeId === \"utt-diplome\" ? \"text-majorelle-blue-600\" : \"text-burnt-peach-800\"}`}\n678:                   >\n679:                     Cycle Ingénieur UTT\n680:                   </p>\n681:                 </div>\n682:               </div>\n683:             </div>\n684:           </div>\n685:         </div>\n686:       </div>\n687: \n688:       {/* 2. DESKTOP TIMELINE (Horizontal, hidden md:block) */}\n689:       <div className=\"hidden md:block relative w-full overflow-visible py-0 perspective-[1000px]\">\n690:         <div\n691:           onScroll={() => setActiveId(null)}\n692:           className=\"relative w-full h-[135px] flex justify-start items-center px-6 overflow-x-auto overflow-y-visible scrollbar-thin\"\n693:         >\n694:           {/* BAC */}\n695:           <div className=\"relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible\">\nThe above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.\n"}
+{"step_index":399,"source":"MODEL","type":"PLANNER_RESPONSE","status":"DONE","created_at":"2026-06-25T15:57:36Z","content":"I will modify `Timeline.jsx` to render the mobile timeline as a clean, single-column vertical list with no timeline line tracks, as you requested. This completely removes any absolute elements or layout columns.","thinking":"**Pinpointing The Mobile Timeline**\n\nI've confirmed the mobile timeline section concludes at line 687. Now, I'm analyzing the code block from line 244 to 687, focusing on its structure and key elements for a complete understanding. The block, marked with comments, appears to represent the mobile timeline implementation.\n\n\n**Analyzing Button Interaction**\n\nI'm now examining the \"bac\" button component within the mobile timeline. The code details its visual styling, the interactions that occur on clicks, and its state changes. I'm noting how the button's appearance dynamically changes using the `activeId` state variable, and I'll see how it affects overall timeline interaction. I'm focusing on the component's internal logic and how it manages user input.\n\n\n**Examining Timeline Event**\n\nI'm now diving into the code for a specific timeline event, focusing on how its button interacts with the `activeId` state. I'm noting how the button's appearance, including its visual style and shadow effects, dynamically changes in response to the active state. I'm also examining how the `onClick` handler updates the `activeId`, which is crucial for managing the timeline's interactive state.\n\n\n**Deciphering Timeline Structure**\n\nI'm now focused on the interactive components, analyzing event buttons' click handlers and their effects on the `activeId` state. I'm noting how the button's visual styles change with the `activeId`, specifically, shadow and color effects. I'm focused on how this state variable manages user interaction and controls which timeline element is highlighted.\n\n\n**Investigating Visual Cues**\n\nI'm now analyzing the visual cues of a specific timeline event's button, and how the `activeId` state affects its appearance. I'm focusing on the dynamic changes of the shadow and color effects. The goal is to fully understand how these visual indicators communicate interactive state, and how users are informed.\n\n\n\n","tool_calls":[{"name":"replace_file_content","args":{"AllowMultiple":"false","Description":"\"Change mobile vertical timeline to a simple single-column list with no background timeline lines and direct block structure.\"","EndLine":"687","Instruction":"\"Replace the mobile vertical layout block in Timeline.jsx with a simple single-column vertical list.\"","ReplacementContent":"\"      {/* 1. MOBILE TIMELINE (Vertical, block md:hidden) */}\\n      <div className=\\\"block md:hidden py-4 text-left\\\">\\n        <div className=\\\"flex flex-col gap-6\\\">\\n          {/* BAC */}\\n          <div\\n            onClick={() => setActiveId(activeId === \\\"bac\\\" ? null : \\\"bac\\\")}\\n            className=\\\"cursor-pointer group hover:opacity-85 transition-opacity\\\"\\n          >\\n            <span className=\\\"text-sm font-bold text-burnt-peach-600 block\\\">\\n              2018 - 2022\\n            </span>\\n            <div className=\\\"flex items-center gap-3 mt-1\\\">\\n              <span className=\\\"text-2xl select-none\\\">🎓</span>\\n              <p\\n                className={`text-lg font-bold transition-colors duration-200 ${activeId === \\\"bac\\\" ? \\\"text-burnt-peach-500\\\" : \\\"text-burnt-peach-800 group-hover:text-burnt-peach-600\\\"}`}\\n              >\\n                Bac Technologique\\n              </p>\\n            </div>\\n          </div>\\n\\n          {/* BUT */}\\n          <div className=\\\"group\\\">\\n            <span className=\\\"text-sm font-bold text-burnt-peach-600 block\\\">\\n              2022 - 2025\\n            </span>\\n            <div className=\\\"flex items-center gap-3 mt-1\\\">\\n              <span className=\\\"text-2xl select-none\\\">💻</span>\\n              <p className=\\\"text-lg font-bold text-burnt-peach-800\\\">\\n                BUT Informatique\\n              </p>\\n            </div>\\n\\n            {/* BUT SUB-ITEMS */}\\n            <div className=\\\"pl-6 mt-4 flex flex-col gap-4\\\">\\n              {/* stage-justice */}\\n              <div\\n                onClick={() => setActiveId(activeId === \\\"stage-justice\\\" ? null : \\\"stage-justice\\\")}\\n                className=\\\"cursor-pointer hover:opacity-85 transition-opacity\\\"\\n              >\\n                <span className=\\\"text-xs font-bold text-burnt-peach-500 block\\\">\\n                  2024\\n                </span>\\n                <div className=\\\"flex items-center gap-3 mt-0.5\\\">\\n                  <span className=\\\"text-xl select-none\\\">⚖\n<truncated 5371 bytes>","StartLine":"244","TargetContent":"\"      {/* 1. MOBILE TIMELINE (Vertical, block md:hidden) */}\\n      <div className=\\\"block md:hidden relative py-4 overflow-visible\\\">\\n        <div className=\\\"flex flex-col overflow-visible\\\">\\n          {/* BAC */}\\n          <div className=\\\"flex items-stretch pb-12 overflow-visible\\\">\\n            {/* Left column for button and vertical line segment */}\\n            <div\\n              className=\\\"w-16 flex justify-center items-start shrink-0 pt-1\\\"\\n              style={{\\n                background: \\\"linear-gradient(to bottom, transparent 26px, #df6c4f 26px) no-repeat center / 8px 100%\\\"\\n              }}\\n            >\\n              <button\\n                onClick={() => setActiveId(activeId === \\\"bac\\\" ? null : \\\"bac\\\")}\\n                data-timeline-btn=\\\"bac\\\"\\n                className={`relative z-10 w-11 h-11 rounded-lg shadow-md cursor-pointer transition-shadow duration-300 outline-none select-none hover:scale-108 p-0 border-0 ${activeId === \\\"bac\\\" ? \\\"shadow-[0_0_12px_rgba(215,75,40,0.5)]\\\" : \\\"hover:shadow-[0_0_12px_rgba(223,111,83,0.35)]\\\"}`}\\n                style={{ transformStyle: \\\"preserve-3d\\\" }}\\n              >\\n                <div className=\\\"tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden\\\">\\n                  <span className=\\\"select-none z-10\\\">🎓</span>\\n                  <div className=\\\"chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg\\\"></div>\\n                </div>\\n                <div\\n                  className=\\\"tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden\\\"\\n                  style={{ transform: \\\"rotateY(180deg)\\\" }}\\n                >\\n                  <span className=\\\"select-none z-10\\\">🎓</span>\\n                  <div className=\\\"chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg\\\"></div>\\n                </div>\\n              </button>\\n            </div>\\n            {/* Right co\n<truncated 21758 bytes>"}}],"truncated_fields":["tool_calls"]}
+{"step_index":400,"source":"SYSTEM","type":"ERROR_MESSAGE","status":"DONE","error":"There was a problem parsing the tool call. \nError Message: model output error: invalid tool call error (invalid_args) argument TargetFile not found \nGuidance: You are trying to correct your previous tool call error, you must focus on fixing the failed tool call with sequential tool calls and try again. Do not do parallel tool calls and if you are fixing multiple tool calls, do them one at a time. Do not apologize. \nRetries remaining: 4.","created_at":"2026-06-25T15:57:47Z","content":"Created At: 2026-06-25T15:57:47Z\nError invalid tool call: There was a problem parsing the tool call. \nError Message: model output error: invalid tool call error (invalid_args) argument TargetFile not found \nGuidance: You are trying to correct your previous tool call error, you must focus on fixing the failed tool call with sequential tool calls and try again. Do not do parallel tool calls and if you are fixing multiple tool calls, do them one at a time. Do not apologize. \nRetries remaining: 4."}
+{"step_index":401,"source":"MODEL","type":"PLANNER_RESPONSE","status":"DONE","created_at":"2026-06-25T15:57:47Z","content":"I will call the `replace_file_content` tool with `TargetFile` at the very beginning of the arguments object.","tool_calls":[{"name":"replace_file_content","args":{"AllowMultiple":"false","Description":"\"Change mobile vertical timeline to a simple single-column list with no background timeline lines and direct block structure.\"","EndLine":"687","Instruction":"\"Replace the mobile vertical layout block in Timeline.jsx with a simple single-column vertical list.\"","ReplacementContent":"\"      {/* 1. MOBILE TIMELINE (Vertical, block md:hidden) */}\\n      <div className=\\\"block md:hidden py-4 text-left\\\">\\n        <div className=\\\"flex flex-col gap-6\\\">\\n          {/* BAC */}\\n          <div\\n            onClick={() => setActiveId(activeId === \\\"bac\\\" ? null : \\\"bac\\\")}\\n            className=\\\"cursor-pointer group hover:opacity-85 transition-opacity\\\"\\n          >\\n            <span className=\\\"text-sm font-bold text-burnt-peach-600 block\\\">\\n              2018 - 2022\\n            </span>\\n            <div className=\\\"flex items-center gap-3 mt-1\\\">\\n              <span className=\\\"text-2xl select-none\\\">🎓</span>\\n              <p\\n                className={`text-lg font-bold transition-colors duration-200 ${activeId === \\\"bac\\\" ? \\\"text-burnt-peach-500\\\" : \\\"text-burnt-peach-800 group-hover:text-burnt-peach-600\\\"}`}\\n              >\\n                Bac Technologique\\n              </p>\\n            </div>\\n          </div>\\n\\n          {/* BUT */}\\n          <div className=\\\"group\\\">\\n            <span className=\\\"text-sm font-bold text-burnt-peach-600 block\\\">\\n              2022 - 2025\\n            </span>\\n            <div className=\\\"flex items-center gap-3 mt-1\\\">\\n              <span className=\\\"text-2xl select-none\\\">💻</span>\\n              <p className=\\\"text-lg font-bold text-burnt-peach-800\\\">\\n                BUT Informatique\\n              </p>\\n            </div>\\n\\n            {/* BUT SUB-ITEMS */}\\n            <div className=\\\"pl-6 mt-4 flex flex-col gap-4\\\">\\n              {/* stage-justice */}\\n              <div\\n                onClick={() => setActiveId(activeId === \\\"stage-justice\\\" ? null : \\\"stage-justice\\\")}\\n                className=\\\"cursor-pointer hover:opacity-85 transition-opacity\\\"\\n              >\\n                <span className=\\\"text-xs font-bold text-burnt-peach-500 block\\\">\\n                  2024\\n                </span>\\n                <div className=\\\"flex items-center gap-3 mt-0.5\\\">\\n                  <span className=\\\"text-xl select-none\\\">⚖\n<truncated 5371 bytes>","StartLine":"244","TargetContent":"\"      {/* 1. MOBILE TIMELINE (Vertical, block md:hidden) */}\\n      <div className=\\\"block md:hidden relative py-4 overflow-visible\\\">\\n        <div className=\\\"flex flex-col overflow-visible\\\">\\n          {/* BAC */}\\n          <div className=\\\"flex items-stretch pb-12 overflow-visible\\\">\\n            {/* Left column for button and vertical line segment */}\\n            <div\\n              className=\\\"w-16 flex justify-center items-start shrink-0 pt-1\\\"\\n              style={{\\n                background: \\\"linear-gradient(to bottom, transparent 26px, #df6c4f 26px) no-repeat center / 8px 100%\\\"\\n              }}\\n            >\\n              <button\\n                onClick={() => setActiveId(activeId === \\\"bac\\\" ? null : \\\"bac\\\")}\\n                data-timeline-btn=\\\"bac\\\"\\n                className={`relative z-10 w-11 h-11 rounded-lg shadow-md cursor-pointer transition-shadow duration-300 outline-none select-none hover:scale-108 p-0 border-0 ${activeId === \\\"bac\\\" ? \\\"shadow-[0_0_12px_rgba(215,75,40,0.5)]\\\" : \\\"hover:shadow-[0_0_12px_rgba(223,111,83,0.35)]\\\"}`}\\n                style={{ transformStyle: \\\"preserve-3d\\\" }}\\n              >\\n                <div className=\\\"tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden\\\">\\n                  <span className=\\\"select-none z-10\\\">🎓</span>\\n                  <div className=\\\"chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg\\\"></div>\\n                </div>\\n                <div\\n                  className=\\\"tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden\\\"\\n                  style={{ transform: \\\"rotateY(180deg)\\\" }}\\n                >\\n                  <span className=\\\"select-none z-10\\\">🎓</span>\\n                  <div className=\\\"chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg\\\"></div>\\n                </div>\\n              </button>\\n            </div>\\n            {/* Right co\n<truncated 21600 bytes>","TargetFile":"\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/components/Timeline.jsx\""}}],"truncated_fields":["tool_calls"]}
+{"step_index":402,"source":"MODEL","type":"CODE_ACTION","status":"DONE","created_at":"2026-06-25T15:57:53Z","content":"Created At: 2026-06-25T15:57:53Z\nCompleted At: 2026-06-25T15:57:54Z\nThe following changes were made by the replace_file_content tool to: /Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/components/Timeline.jsx. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.\n[diff_block_start]\n@@ -253,46 +253,20 @@\n       )}\n \n       {/* 1. MOBILE TIMELINE (Vertical, block md:hidden) */}\n-      <div className=\"block md:hidden relative py-4 overflow-visible\">\n-        <div className=\"flex flex-col overflow-visible\">\n-          {/* BAC */}\n-          <div className=\"flex items-stretch pb-12 overflow-visible\">\n-            {/* Left column for button and vertical line segment */}\n-            <div\n-              className=\"w-16 flex justify-center items-start shrink-0 pt-1\"\n-              style={{\n-                background: \"linear-gradient(to bottom, transparent 26px, #df6c4f 26px) no-repeat center / 8px 100%\"\n-              }}\n-            >\n-              <button\n-                onClick={() => setActiveId(activeId === \"bac\" ? null : \"bac\")}\n-                data-timeline-btn=\"bac\"\n-                className={`relative z-10 w-11 h-11 rounded-lg shadow-md cursor-pointer transition-shadow duration-300 outline-none select-none hover:scale-108 p-0 border-0 ${activeId === \"bac\" ? \"shadow-[0_0_12px_rgba(215,75,40,0.5)]\" : \"hover:shadow-[0_0_12px_rgba(223,111,83,0.35)]\"}`}\n-                style={{ transformStyle: \"preserve-3d\" }}\n-              >\n-                <div className=\"tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden\">\n-                  <span className=\"select-none z-10\">🎓</span>\n-                  <div className=\"chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg\"></div>\n-                </div>\n-                <div\n-                  className=\"tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden\"\n-      \n<truncated 25605 bytes>\n                 style={{ transform: \"rotateY(180deg)\" }}\n-                    >\n-                      <span className=\"select-none z-10\">🎓</span>\n-                      <div className=\"chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg\"></div>\n-                    </div>\n-                  </button>\n-                </div>\n-                <div\n-                  onClick={() =>\n-                    setActiveId(\n-                      activeId === \"utt-diplome\" ? null : \"utt-diplome\",\n-                    )\n-                  }\n-                  className=\"pl-4 min-h-[44px] pt-1 cursor-pointer grow text-left\"\n-                >\n-                  <span className=\"text-base font-bold text-burnt-peach-600 block\">\n-                    2025 - 2028\n-                  </span>\n-                  <p\n-                    className={`text-lg font-bold mt-2 transition-colors duration-200 ${activeId === \"utt-diplome\" ? \"text-majorelle-blue-600\" : \"text-burnt-peach-800\"}`}\n+              {/* utt-diplome */}\n+              <div\n+                onClick={() => setActiveId(activeId === \"utt-diplome\" ? null : \"utt-diplome\")}\n+                className=\"cursor-pointer hover:opacity-85 transition-opacity\"\n+              >\n+                <span className=\"text-xs font-bold text-burnt-peach-500 block\">\n+                  2025 - 2028\n+                </span>\n+                <div className=\"flex items-center gap-3 mt-0.5\">\n+                  <span className=\"text-xl select-none\">🎓</span>\n+                  <p\n+                    className={`text-base font-bold transition-colors duration-200 ${activeId === \"utt-diplome\" ? \"text-majorelle-blue-600\" : \"text-burnt-peach-700\"}`}\n                   >\n                     Cycle Ingénieur UTT\n                   </p>\n[diff_block_end]\n\nPlease note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.","truncated_fields":["content"]}
+{"step_index":403,"source":"SYSTEM","type":"CHECKPOINT","status":"DONE","created_at":"2026-06-25T15:57:54Z","content":"# Resuming from a compaction\n\nYou are continuing work on the task described above, but you have lost access to the full conversation history, and need to resume work efficiently using the progress summary below:\n\n# User Requests\nThe following were user requests from the truncated conversation in chronological order:\n1. Ajoute le même espace que entre la section board et anout a toute les autres sections\n2. Les labels des input doivent être sur une seul ligne quand ils ont la place\n3. Ajoute une container avec un fond majorelle-blue clair, pour y poster une annonce de recherche de stage. N'écrit pas les textes, met juste des templates\n4. Ajoute une page de projet pour le projet application de stationnement, remplis le avec du texte template. Pour les autres page projet, j'aimerais que tu : Réduise la taille du Header, ajoute le flou pixélisé au carousel.\n5. Réduit la taille du titre des page de projet, pour réduire la taille des header. Les flèches de control des carousel sont sous le flou, elles doivent être au dessus. Également SANS REFORMULER, met en gras les mots important dans les textes \"Description du projet\"\n6. Ok, le problème avec la timeline en version mobile vient du fait que le container ne s'agrandit pas en haut car la timeline (ou ses éléments) ont une positions absolute donc ils ne prennent aucune place. Fixe ce soucis\n7. Toujours le même problème\n8. Ok, change la façon d'affiche la \"timeline\" sur mobile uniquement, affiche tout directement, enlève le fait que ça se déplie.\n9. Enlève la position absolute sur mobile je t'en supplie\n10. Non ça ne fonctionne pas. Prend le temps de tout analyser. Je veux que ma timeline soit (SUR MOBILE UNIQUEMENT), juste une liste dans une colonne. Supprime la ligne qui représente la timeline\n\n<summary>\n### 1. Task Overview\n- **Core Request**: Remove the background vertical track line and the button columns on mobile screens entirely. Change the mobile timeline layout to be a simple, single-column vertical list of entries with inline emojis and t\n<truncated 1524 bytes>\nd scrollbar issues.\n  - Ran `npm run build` successfully to confirm clean production compiles.\n\n### 3. Key Findings\n- Desktop popover overlays rendered via React portals onto `document.body` with `absolute` coordinates can trigger scrollbar/layout page extensions on mobile browsers, even if they have `hidden md:block`. Tying the portal to `!isMobile` resolves this cleanly.\n- Simple, relative-flow text and emoji list containers completely resolve height-recalculation and page overflow issues on mobile browsers because they do not rely on absolute positioning, grid calculations, or `max-height` transition wrappers.\n\n### 4. Active Context\n- The Vite project builds cleanly without errors.\n- Desktop horizontal view relies on `expandedGroupId` toggling and GSAP 3D tile flips, which remain fully operational.\n\n### 5. Next Steps\n1. Verify the layout behavior directly on a mobile web browser or emulator to confirm no absolute layout side-effects remain.\n2. Confirm with the user that the list styling (emojis next to text headings, hierarchy padding indentation) meets their exact expectations.\n\n### 6. Commitments & Constraints\n- The horizontal timeline layout and animations on desktop must remain completely untouched.\n- Style overrides for [About.jsx](file:///Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/components/About.jsx) card container must remain integrated directly in [Timeline.jsx](file:///Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/components/Timeline.jsx) to keep them unified.\n</summary>\n\nYou have the 2 following artifacts written to the artifacts directory:\n\n[ARTIFACT: parking_app_detail_1782397954273]\nPath: file:///Users/alexiszott/.gemini/antigravity-cli/brain/17d5ce8c-0c76-4c68-9541-34607b864bbc/parking_app_detail_1782397954273.jpg\nLast Edited: 2026-06-25T14:32:34Z\n\n[ARTIFACT: parking_app_map_1782397940662]\nPath: file:///Users/alexiszott/.gemini/antigravity-cli/brain/17d5ce8c-0c76-4c68-9541-34607b864bbc/parking_app_map_1782397940662.jpg\nLast Edited: 2026-06-25T14:32:20Z","truncated_fields":["content"]}
+{"step_index":404,"source":"SYSTEM","type":"CONVERSATION_HISTORY","status":"DONE","created_at":"2026-06-25T15:57:57Z"}
+{"step_index":405,"source":"MODEL","type":"PLANNER_RESPONSE","status":"DONE","created_at":"2026-06-25T15:57:57Z","content":"I will search for the timeline-related components in the codebase to understand the current implementation and how it behaves on mobile devices. Let's run a search for `Timeline.jsx` or similar names.","tool_calls":[{"name":"grep_search","args":{"CaseInsensitive":"true","MatchPerLine":"false","Query":"\"Timeline\"","SearchPath":"\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io\"","toolAction":"\"Searching for Timeline references\"","toolSummary":"\"Searching for timeline component\""}}]}
+{"step_index":406,"source":"MODEL","type":"GREP_SEARCH","status":"DONE","created_at":"2026-06-25T15:57:58Z","content":"Created At: 2026-06-25T15:57:58Z\nCompleted At: 2026-06-25T15:57:58Z\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/dist/assets/index-DsYQxxYL.js\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/.vite/deps/gsap.js\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/.vite/deps/gsap.js.map\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/@tailwindcss/vite/node_modules/lightningcss-darwin-arm64/lightningcss.darwin-arm64.node\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/@tailwindcss/vite/node_modules/lightningcss/node/ast.d.ts\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/@tailwindcss/vite/node_modules/lightningcss/node/ast.js.flow\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/Flip.js\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/GSDevTools.js\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/MotionPathHelper.js\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/ScrollTrigger.js\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/all.js\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/dist/Flip.js\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/dist/Flip.min.js\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/dist/Flip.min.js.map\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/dist/GSDevTools.js\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/dist/GSDevTools.min.js\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/dist/GSDevTools.min.js.\n<truncated 1784 bytes>\ns\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/src/gsap-core.js\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/src/index.js\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/types/animation.d.ts\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/types/flip.d.ts\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/types/gs-dev-tools.d.ts\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/types/gsap-core.d.ts\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/types/index.d.ts\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/types/scroll-trigger.d.ts\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/types/timeline.d.ts\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/gsap/types/tween.d.ts\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/lightningcss-darwin-arm64/lightningcss.darwin-arm64.node\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/lightningcss/node/ast.d.ts\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/lightningcss/node/ast.js.flow\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/vite/node_modules/lightningcss-darwin-arm64/lightningcss.darwin-arm64.node\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/vite/node_modules/lightningcss/node/ast.d.ts\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/node_modules/vite/node_modules/lightningcss/node/ast.js.flow\"}\n{\"File\":\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/components/About.jsx\"}\n(...4 more results not shown)","truncated_fields":["content"]}
+{"step_index":407,"source":"MODEL","type":"PLANNER_RESPONSE","status":"DONE","created_at":"2026-06-25T15:57:58Z","content":"I will list the components directory to locate all React component files in the portfolio.","tool_calls":[{"name":"list_dir","args":{"DirectoryPath":"\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/components\"","toolAction":"\"Listing components directory\"","toolSummary":"\"Listing files in components folder\""}}]}
+{"step_index":408,"source":"MODEL","type":"LIST_DIRECTORY","status":"DONE","created_at":"2026-06-25T15:57:59Z","content":"Created At: 2026-06-25T15:57:59Z\nCompleted At: 2026-06-25T15:57:59Z\n{\"name\":\"About.jsx\", \"sizeBytes\":\"5242\"}\n{\"name\":\"Board.jsx\", \"sizeBytes\":\"4416\"}\n{\"name\":\"Contact.jsx\", \"sizeBytes\":\"8639\"}\n{\"name\":\"Footer.jsx\", \"sizeBytes\":\"3446\"}\n{\"name\":\"ProjectDetail.jsx\", \"sizeBytes\":\"21214\"}\n{\"name\":\"Projects.jsx\", \"sizeBytes\":\"9799\"}\n{\"name\":\"Svgs.jsx\", \"sizeBytes\":\"47995\"}\n{\"name\":\"Timeline.jsx\", \"sizeBytes\":\"41548\"}\n\nSummary: This directory contains 0 subdirectories and 8 files."}
+{"step_index":409,"source":"MODEL","type":"PLANNER_RESPONSE","status":"DONE","created_at":"2026-06-25T15:57:59Z","content":"I will view the `Timeline.jsx` file to see how the desktop vs. mobile layouts are currently structured, specifically looking for the vertical line and how it is rendered on mobile screens.","tool_calls":[{"name":"view_file","args":{"AbsolutePath":"\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/components/Timeline.jsx\"","StartLine":"1","toolAction":"\"Viewing Timeline.jsx file content\"","toolSummary":"\"Viewing Timeline.jsx file\""}}]}
+{"step_index":410,"source":"MODEL","type":"VIEW_FILE","status":"DONE","created_at":"2026-06-25T15:58:01Z","content":"Created At: 2026-06-25T15:58:01Z\nCompleted At: 2026-06-25T15:58:01Z\nFile Path: `file:///Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/components/Timeline.jsx`\nTotal Lines: 852\nTotal Bytes: 41548\nShowing lines 1 to 800\nThe following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.\n1: import React, { useState, useEffect, useRef } from \"react\";\n2: import { createPortal } from \"react-dom\";\n3: import { gsap } from \"gsap\";\n4: \n5: // Customizable timeline data for sub-items and popovers\n6: const subItemsData = {\n7:   bac: {\n8:     id: \"bac\",\n9:     emoji: \"🎓\",\n10:     year: \"2018 - 2022\",\n11:     title: \"Bac technologique\",\n12:     institution: \"Lycée Boutet de Monvel - Lunéville\",\n13:     date: \"2018 - 2022\",\n14:     details: \"BAC Technologique STI2D. Obtenu avec mention bien.\",\n15:   },\n16:   \"stage-justice\": {\n17:     id: \"stage-justice\",\n18:     emoji: \"⚖️\",\n19:     year: \"2024\",\n20:     title: \"Stage - Ministère de la Justice\",\n21:     institution: \"Ministère de la Justice - Nancy\",\n22:     date: \"Mai - Juin 2024 (8 semaines)\",\n23:     details:\n24:       \"Stage de 8 semaines au sein du Ministère de la Justice de Nancy durant ma seconde année de BUT. Développement d'un site web interne visant à améliorer la gestion des déploiements de matériel.\",\n25:   },\n26:   \"stage-netlor\": {\n27:     id: \"stage-netlor\",\n28:     emoji: \"🏊‍♂️\",\n29:     year: \"2025\",\n30:     title: \"Stage - Netlor\",\n31:     institution: \"Netlor - Nancy\",\n32:     date: \"Février - Mai 2025 (14 semaines)\",\n33:     details:\n34:       \"Stage de 14 semaines au sein de l'entreprise Netlor (Nancy) durant ma troisième année de BUT. Développement d'une application mobile visant à aider les maître nageurs, migration d'API et de base de données.\",\n35:   },\n36:   \"but-diplome\": {\n37:     id: \"but-diplome\",\n38:     emoji: \"💻\",\n39: \n<truncated 39867 bytes>\n] border-y-transparent border-l-[14px] border-l-majorelle-blue-500 z-0\"></div>\n777:               <div className=\"absolute top-[5px] h-8 flex items-end justify-center\">\n778:                 <span\n779:                   className={`text-lg font-bold transition-colors duration-200 ${activeId === \"utt-diplome\" ? \"text-majorelle-blue-600\" : \"text-burnt-peach-600\"}`}\n780:                 >\n781:                   2025 - 2028\n782:                 </span>\n783:               </div>\n784:               <button\n785:                 onClick={(e) => handleButtonClick(e, \"utt-diplome\")}\n786:                 data-timeline-btn=\"utt-diplome\"\n787:                 className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === \"utt-diplome\" ? \"shadow-[0_0_15px_rgba(76,73,234,0.5)]\" : \"hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]\"}`}\n788:                 style={{ transformStyle: \"preserve-3d\" }}\n789:               >\n790:                 <div className=\"tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden\">\n791:                   <span className=\"select-none z-10 text-lg\">🎓</span>\n792:                   <div className=\"chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg\"></div>\n793:                 </div>\n794:                 <div\n795:                   className=\"tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden\"\n796:                   style={{ transform: \"rotateY(180deg)\" }}\n797:                 >\n798:                   <span className=\"select-none z-10 text-lg\">🎓</span>\n799:                   <div className=\"chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg\"></div>\n800:                 </div>\nThe above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.\n","truncated_fields":["content"]}
+{"step_index":411,"source":"MODEL","type":"PLANNER_RESPONSE","status":"DONE","created_at":"2026-06-25T15:58:01Z","content":"I will view the rest of the `Timeline.jsx` file to see how the popover portal and mobile popovers are implemented at the end of the file.","tool_calls":[{"name":"view_file","args":{"AbsolutePath":"\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/components/Timeline.jsx\"","StartLine":"801","toolAction":"\"Viewing remaining lines of Timeline.jsx\"","toolSummary":"\"Viewing end of Timeline.jsx\""}}]}
+{"step_index":412,"source":"MODEL","type":"VIEW_FILE","status":"DONE","created_at":"2026-06-25T15:58:02Z","content":"Created At: 2026-06-25T15:58:02Z\nCompleted At: 2026-06-25T15:58:02Z\nFile Path: `file:///Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/components/Timeline.jsx`\nTotal Lines: 852\nTotal Bytes: 41548\nShowing lines 801 to 852\nThe following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.\n801:               </button>\n802:               <div\n803:                 onClick={(e) => handleButtonClick(e, \"utt-diplome\")}\n804:                 className=\"absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity\"\n805:               >\n806:                 <p\n807:                   className={`text-base font-bold leading-snug transition-colors duration-200 ${activeId === \"utt-diplome\" ? \"text-majorelle-blue-600\" : \"text-burnt-peach-800\"}`}\n808:                 >\n809:                   Cycle Ingénieur UTT\n810:                 </p>\n811:               </div>\n812:             </div>\n813:           </div>\n814:         </div>\n815:       </div>\n816: \n817:       {/* DESKTOP POPOVER OVERLAY */}\n818:       {!isMobile &&\n819:         activeId !== null &&\n820:         activeJalon &&\n821:         createPortal(\n822:           <div\n823:             style={{\n824:               position: \"absolute\",\n825:               top: `${popoverCoords.top}px`,\n826:               left: `${popoverCoords.left}px`,\n827:               transform: \"translate(-50%, -100%)\",\n828:             }}\n829:             className=\"hidden md:block z-[9999] w-[350px] bg-neutral-900 border-2 border-burnt-peach-400 text-white rounded-xl shadow-2xl p-6 text-left transition-all duration-300 transform origin-bottom overflow-hidden scale-100 animate-in fade-in zoom-in-95\"\n830:             onClick={(e) => e.stopPropagation()}\n831:           >\n832:             {renderPopoverContent(activeJalon)}\n833:           </div>,\n834:           document.body,\n835:         )}\n836: \n837:       {/* MOBILE MODAL OVERLAY */}\n838:       {activeId !== null && activeJalon && (\n839:         <div className=\"fixed inset-0 z-50 flex items-center justify-center p-4 perspective-[1000px] md:hidden\">\n840:           <div\n841:             className=\"fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity duration-300\"\n842:             onClick={() => setActiveId(null)}\n843:           />\n844:           <div className=\"relative bg-neutral-900 border-2 border-burnt-peach-400 text-white rounded-xl shadow-2xl p-6 max-w-sm w-full z-10 overflow-hidden transform transition-all duration-300 scale-100 animate-in fade-in zoom-in-95\">\n845:             {renderPopoverContent(activeJalon)}\n846:           </div>\n847:         </div>\n848:       )}\n849:     </div>\n850:   );\n851: }\n852: \nThe above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.\n"}
+{"step_index":413,"source":"MODEL","type":"PLANNER_RESPONSE","status":"DONE","created_at":"2026-06-25T15:58:02Z","content":"I will list the root contents of the src directory to see what other files (like CSS files) exist.","tool_calls":[{"name":"list_dir","args":{"DirectoryPath":"\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src\"","toolAction":"\"Listing src directory\"","toolSummary":"\"Listing files in src directory\""}}]}
+{"step_index":414,"source":"MODEL","type":"LIST_DIRECTORY","status":"DONE","created_at":"2026-06-25T15:58:03Z","content":"Created At: 2026-06-25T15:58:03Z\nCompleted At: 2026-06-25T15:58:03Z\n{\"name\":\".DS_Store\", \"sizeBytes\":\"6148\"}\n{\"name\":\"App.jsx\", \"sizeBytes\":\"945\"}\n{\"name\":\"components\", \"isDir\":true}\n{\"name\":\"main.jsx\", \"sizeBytes\":\"264\"}\n{\"name\":\"style.css\", \"sizeBytes\":\"6527\"}\n{\"name\":\"tailwind.css\", \"sizeBytes\":\"1077\"}\n\nSummary: This directory contains 1 subdirectories and 5 files."}
+{"step_index":415,"source":"MODEL","type":"PLANNER_RESPONSE","status":"DONE","created_at":"2026-06-25T15:58:03Z","content":"I will view `style.css` to see if there are any CSS rules for the timeline that draw vertical or horizontal lines or handle other styles.","tool_calls":[{"name":"view_file","args":{"AbsolutePath":"\"/Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/style.css\"","toolAction":"\"Viewing style.css contents\"","toolSummary":"\"Viewing style.css file\""}}]}
+{"step_index":416,"source":"MODEL","type":"VIEW_FILE","status":"DONE","created_at":"2026-06-25T15:58:04Z","content":"Created At: 2026-06-25T15:58:04Z\nCompleted At: 2026-06-25T15:58:04Z\nFile Path: `file:///Users/alexiszott/Documents/Dev/portfolio/alexiszott.github.io/src/style.css`\nTotal Lines: 323\nTotal Bytes: 6527\nShowing lines 1 to 323\nThe following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.\n1: :root {\n2:   --main-bg-color: #222222;\n3:   --main-text-color: #eeeeee;\n4:   --orange: #df6c4f;\n5:   --default-color-card: #141414;\n6:   --dark-color: #222222;\n7: }\n8: \n9: html,\n10: body {\n11:   overflow-x: hidden;\n12:   background-color: var(--main-bg-color);\n13:   scroll-behavior: smooth;\n14: }\n15: \n16: .chromatic-background {\n17:   position: fixed;\n18:   top: 0;\n19:   left: 0;\n20:   width: 100vw;\n21:   height: 100vh;\n22:   z-index: 0;\n23:   opacity: 0.1;\n24:   pointer-events: none;\n25:   background-size: 100% 4px;\n26:   background: linear-gradient(to bottom, #000, #000 50%, #222 50%, #222);\n27:   background-size: 100% 4px;\n28:   animation: gradientMove 200ms ease infinite;\n29: }\n30: \n31: .shadow-block {\n32:   box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;\n33: }\n34: \n35: .text-shadow-custom {\n36:   text-shadow: 0px 1px 1px rgb(0 0 0 / 0.1), 0px 1px 2px rgb(0 0 0 / 0.1),\n37:     0px 2px 4px rgb(0 0 0 / 0.1);\n38: }\n39: \n40: h1,\n41: h2,\n42: h3,\n43: h4,\n44: h5,\n45: h6 {\n46:   font-family: \"Anton\", sans-serif;\n47:   font-optical-sizing: auto;\n48:   font-weight: 400;\n49: }\n50: \n51: p,\n52: a,\n53: .btn,\n54: .btn-fermer {\n55:   font-family: \"SUSE\", sans-serif;\n56:   font-optical-sizing: auto;\n57:   font-
+      </div>
+
+      {/* 2. DESKTOP TIMELINE (Horizontal, hidden md:block) */}
+      <div className="hidden md:block relative w-full overflow-visible py-0 perspective-[1000px]">
+        <div
+          onScroll={() => setActiveId(null)}
+          className="relative w-full h-[135px] flex justify-start items-center px-6 overflow-x-auto overflow-y-visible scrollbar-thin"
+        >
+          {/* BAC */}
+          <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+            <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-40 h-[8px] bg-burnt-peach-400 z-0"></div>
+            <div className="absolute top-[5px] h-8 flex items-end justify-center">
+              <span
+                className={`text-lg font-bold transition-colors duration-200 ${activeId === "bac" ? "text-burnt-peach-500" : "text-burnt-peach-600"}`}
+              >
+                2018 - 2022
+              </span>
+            </div>
+            <button
+              onClick={(e) => handleButtonClick(e, "bac")}
+              data-timeline-btn="bac"
+              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer transition-shadow duration-300 p-0 border-0 ${activeId === "bac" ? "shadow-[0_0_15px_rgba(215,75,40,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                <span className="select-none z-10 text-lg">🎓</span>
+                <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+              </div>
+              <div
+                className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                style={{ transform: "rotateY(180deg)" }}
+              >
+                <span className="select-none z-10 text-lg">🎓</span>
+                <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+              </div>
+            </button>
+            <div
+              onClick={(e) => handleButtonClick(e, "bac")}
+              className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+            >
+              <p
+                className={`text-base font-bold leading-snug transition-colors duration-200 ${activeId === "bac" ? "text-burnt-peach-500" : "text-burnt-peach-800"}`}
+              >
+                Bac Technologique
+              </p>
+            </div>
+          </div>
+
+          {/* BUT HEADER */}
+          <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+            <div
+              className={`absolute top-1/2 -translate-y-1/2 left-1/2 w-40 h-[8px] z-0 transition-colors duration-500 ${expandedGroupId === "but" ? "bg-majorelle-blue-500" : "bg-burnt-peach-400"}`}
+            ></div>
+            <div className="absolute top-[5px] h-8 flex items-end justify-center">
+              <span
+                className={`text-lg font-bold transition-colors duration-200 ${expandedGroupId === "but" ? "text-burnt-peach-500" : "text-burnt-peach-600"}`}
+              >
+                2022 - 2025
+              </span>
+            </div>
+            <button
+              onClick={() => toggleGroup("but")}
+              data-timeline-btn="but-header"
+              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer transition-shadow duration-300 p-0 border-0 ${expandedGroupId === "but" ? "shadow-[0_0_15px_rgba(215,75,40,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                <span className="select-none z-10 text-lg">💻</span>
+                <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+              </div>
+              <div
+                className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                style={{ transform: "rotateY(180deg)" }}
+              >
+                <span className="select-none z-10 text-lg">💻</span>
+                <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+              </div>
+            </button>
+            <div
+              onClick={() => toggleGroup("but")}
+              className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+            >
+              <p
+                className={`text-base font-bold leading-snug transition-colors duration-200 ${expandedGroupId === "but" ? "text-burnt-peach-500" : "text-burnt-peach-800"}`}
+              >
+                BUT Informatique
+              </p>
+            </div>
+          </div>
+
+          {/* Collapsible Sub-Timeline BUT (Horizontal) */}
+          <div
+            className="flex items-center h-full transition-all duration-500 ease-in-out"
+            style={{
+              maxWidth: expandedGroupId === "but" ? "480px" : "0px",
+              opacity: expandedGroupId === "but" ? 1 : 0,
+              overflow: expandedGroupId === "but" ? "visible" : "hidden",
+            }}
+          >
+            {/* Sub-item 2: Stage Justice */}
+            <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+              <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-40 h-[8px] bg-majorelle-blue-500 z-0"></div>
+              <div className="absolute top-[5px] h-8 flex items-end justify-center">
+                <span
+                  className={`text-lg font-bold transition-colors duration-200 ${activeId === "stage-justice" ? "text-majorelle-blue-600" : "text-burnt-peach-600"}`}
+                >
+                  2024
+                </span>
+              </div>
+              <button
+                onClick={(e) => handleButtonClick(e, "stage-justice")}
+                data-timeline-btn="stage-justice"
+                className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "stage-justice" ? "shadow-[0_0_15px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                  <span className="select-none z-10 text-lg">⚖️</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+                <div
+                  className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                  style={{ transform: "rotateY(180deg)" }}
+                >
+                  <span className="select-none z-10 text-lg">⚖️</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+              </button>
+              <div
+                onClick={(e) => handleButtonClick(e, "stage-justice")}
+                className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+              >
+                <p
+                  className={`text-base font-bold leading-snug transition-colors duration-200 ${activeId === "stage-justice" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                >
+                  Stage - Justice
+                </p>
+              </div>
+            </div>
+
+            {/* Sub-item 3: Stage Netlor */}
+            <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+              <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-40 h-[8px] bg-majorelle-blue-500 z-0"></div>
+              <div className="absolute top-[5px] h-8 flex items-end justify-center">
+                <span
+                  className={`text-lg font-bold transition-colors duration-200 ${activeId === "stage-netlor" ? "text-majorelle-blue-600" : "text-burnt-peach-600"}`}
+                >
+                  2025
+                </span>
+              </div>
+              <button
+                onClick={(e) => handleButtonClick(e, "stage-netlor")}
+                data-timeline-btn="stage-netlor"
+                className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "stage-netlor" ? "shadow-[0_0_15px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                  <span className="select-none z-10 text-lg">🏊‍♂️</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+                <div
+                  className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                  style={{ transform: "rotateY(180deg)" }}
+                >
+                  <span className="select-none z-10 text-lg">🏊‍♂️</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+              </button>
+              <div
+                onClick={(e) => handleButtonClick(e, "stage-netlor")}
+                className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+              >
+                <p
+                  className={`text-base font-bold leading-snug transition-colors duration-200 ${activeId === "stage-netlor" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                >
+                  Stage - Netlor
+                </p>
+              </div>
+            </div>
+
+            {/* Sub-item 4: Obtention BUT */}
+            <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+              <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-40 h-[8px] bg-burnt-peach-400 z-0"></div>
+              <div className="absolute top-[5px] h-8 flex items-end justify-center">
+                <span
+                  className={`text-lg font-bold transition-colors duration-200 ${activeId === "but-diplome" ? "text-majorelle-blue-600" : "text-burnt-peach-600"}`}
+                >
+                  2025
+                </span>
+              </div>
+              <button
+                onClick={(e) => handleButtonClick(e, "but-diplome")}
+                data-timeline-btn="but-diplome"
+                className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "but-diplome" ? "shadow-[0_0_15px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                  <span className="select-none z-10 text-lg">💻</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+                <div
+                  className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                  style={{ transform: "rotateY(180deg)" }}
+                >
+                  <span className="select-none z-10 text-lg">💻</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+              </button>
+              <div
+                onClick={(e) => handleButtonClick(e, "but-diplome")}
+                className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+              >
+                <p
+                  className={`text-base font-bold leading-snug transition-colors duration-200 ${activeId === "but-diplome" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                >
+                  Obtention du BUT
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* UTT HEADER */}
+          <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+            {expandedGroupId === "utt" && (
+              <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-40 h-[8px] bg-majorelle-blue-500 z-0 transition-colors duration-500"></div>
+            )}
+            {expandedGroupId !== "utt" && (
+              <>
+                <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-[38px] h-[8px] bg-burnt-peach-400 z-0"></div>
+                <div className="absolute left-[118px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-[10px] border-y-transparent border-l-[14px] border-l-burnt-peach-400 z-0"></div>
+              </>
+            )}
+            <div className="absolute top-[5px] h-8 flex items-end justify-center">
+              <span
+                className={`text-lg font-bold transition-colors duration-200 ${expandedGroupId === "utt" ? "text-burnt-peach-500" : "text-burnt-peach-600"}`}
+              >
+                2025 - 2028
+              </span>
+            </div>
+            <button
+              onClick={() => toggleGroup("utt")}
+              data-timeline-btn="utt-header"
+              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer transition-shadow duration-300 p-0 border-0 ${expandedGroupId === "utt" ? "shadow-[0_0_15px_rgba(215,75,40,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                <span className="select-none z-10 text-lg">🚀</span>
+                <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+              </div>
+              <div
+                className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                style={{ transform: "rotateY(180deg)" }}
+              >
+                <span className="select-none z-10 text-lg">🚀</span>
+                <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+              </div>
+            </button>
+            <div
+              onClick={() => toggleGroup("utt")}
+              className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+            >
+              <p
+                className={`text-base font-bold leading-snug transition-colors duration-200 ${expandedGroupId === "utt" ? "text-burnt-peach-500" : "text-burnt-peach-800"}`}
+              >
+                Cycle Ingénieur
+              </p>
+            </div>
+          </div>
+
+          {/* Collapsible Sub-Timeline UTT (Horizontal) */}
+          <div
+            className="flex items-center h-full transition-all duration-500 ease-in-out"
+            style={{
+              maxWidth: expandedGroupId === "utt" ? "480px" : "0px",
+              opacity: expandedGroupId === "utt" ? 1 : 0,
+              overflow: expandedGroupId === "utt" ? "visible" : "hidden",
+            }}
+          >
+            {/* Sub-item: Départ semestre étranger */}
+            <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+                className={`text-base font-bold leading-snug transition-colors duration-200 ${expandedGroupId === "utt" ? "text-burnt-peach-500" : "text-burnt-peach-800"}`}
+              >
+                Cycle Ingénieur
+              </p>
+            </div>
+          </div>
+
+          {/* Collapsible Sub-Timeline UTT (Horizontal) */}
+          <div
+            className="flex items-center h-full transition-all duration-500 ease-in-out"
+            style={{
+              maxWidth: expandedGroupId === "utt" ? "480px" : "0px",
+              opacity: expandedGroupId === "utt" ? 1 : 0,
+              overflow: expandedGroupId === "utt" ? "visible" : "hidden",
+            }}
+          >
+            {/* Sub-item: Départ semestre étranger */}
+            <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+              <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-40 h-[8px] bg-majorelle-blue-500 z-0"></div>
+              <div className="absolute top-[5px] h-8 flex items-end justify-center">
+                <span
+                  className={`text-lg font-bold transition-colors duration-200 ${activeId === "utt-etranger" ? "text-majorelle-blue-600" : "text-burnt-peach-600"}`}
+                >
+                  Mars 2027
+                </span>
+              </div>
+              <button
+                onClick={(e) => handleButtonClick(e, "utt-etranger")}
+                data-timeline-btn="utt-etranger"
+                className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "utt-etranger" ? "shadow-[0_0_15px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                  <span className="select-none z-10 text-lg">✈️</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+                <div
+                  className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                  style={{ transform: "rotateY(180deg)" }}
+                >
+                  <span className="select-none z-10 text-lg">✈️</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+              </button>
+              <div
+                onClick={(e) => handleButtonClick(e, "utt-etranger")}
+                className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+              >
+                <p
+                  className={`text-base font-bold leading-snug transition-colors duration-200 ${activeId === "utt-etranger" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                >
+                  Semestre étranger
+                </p>
+              </div>
+            </div>
+
+            {/* Sub-item: Stage de fin d'étude */}
+            <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+              <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-40 h-[8px] bg-majorelle-blue-500 z-0"></div>
+              <div className="absolute top-[5px] h-8 flex items-end justify-center">
+                <span
+                  className={`text-lg font-bold transition-colors duration-200 ${activeId === "utt-stage" ? "text-majorelle-blue-600" : "text-burnt-peach-600"}`}
+                >
+                  Septembre 2027
+                </span>
+              </div>
+              <button
+                onClick={(e) => handleButtonClick(e, "utt-stage")}
+                data-timeline-btn="utt-stage"
+                className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "utt-stage" ? "shadow-[0_0_15px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                  <span className="select-none z-10 text-lg">💼</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+                <div
+                  className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                  style={{ transform: "rotateY(180deg)" }}
+                >
+                  <span className="select-none z-10 text-lg">💼</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+              </button>
+              <div
+                onClick={(e) => handleButtonClick(e, "utt-stage")}
+                className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+              >
+                <p
+                  className={`text-base font-bold leading-snug transition-colors duration-200 ${activeId === "utt-stage" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                >
+                  Stage fin d'étude
+                </p>
+              </div>
+            </div>
+
+            {/* Sub-item 3: Cycle d'Ingénieur UTT */}
+            <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+              <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-[38px] h-[8px] bg-majorelle-blue-500 z-0"></div>
+              <div className="absolute left-[118px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-[10px] border-y-transparent border-l-[14px] border-l-majorelle-blue-500 z-0"></div>
+              <div className="absolute top-[5px] h-8 flex items-end justify-center">
+                <span
+                  className={`text-lg font-bold transition-colors duration-200 ${activeId === "utt-diplome" ? "text-majorelle-blue-600" : "text-burnt-peach-600"}`}
+                >
+                  2025 - 2028
+                </span>
+              </button>
+              <div
+                onClick={(e) => handleButtonClick(e, "utt-diplome")}
+                className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+              >
+                <p
+                  className={`text-base font-bold leading-snug transition-colors duration-200 ${activeId === "utt-diplome" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                >
+                  Cycle Ingénieur UTT
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* DESKTOP POPOVER OVERLAY */}
+      {!isMobile &&
+        activeId !== null &&
+        activeJalon &&
+        createPortal(
+          <div
+            style={{
+              position: "absolute",
+              top: `${popoverCoords.top}px`,
+              left: `${popoverCoords.left}px`,
+              transform: "translate(-50%, -100%)",
+            }}
+            className="hidden md:block z-[9999] w-[350px] bg-neutral-900 border-2 border-burnt-peach-400 text-white rounded-xl shadow-2xl p-6 text-left transition-all duration-300 transform origin-bottom overflow-hidden scale-100 animate-in fade-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {renderPopoverContent(activeJalon)}
+          </div>,
+          document.body,
+        )}
+
+      {/* MOBILE MODAL OVERLAY */}
+      {activeId !== null && activeJalon && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 perspective-[1000px] md:hidden">
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity duration-300"
+            onClick={() => setActiveId(null)}
+          />
+          <div className="relative bg-neutral-900 border-2 border-burnt-peach-400 text-white rounded-xl shadow-2xl p-6 max-w-sm w-full z-10 overflow-hidden transform transition-all duration-300 scale-100 animate-in fade-in zoom-in-95">
+            {renderPopoverContent(activeJalon)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+                onClick={(e) => handleButtonClick(e, "but-diplome")}
+                data-timeline-btn="but-diplome"
+                className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "but-diplome" ? "shadow-[0_0_15px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                  <span className="select-none z-10 text-lg">💻</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+                <div
+                  className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                  style={{ transform: "rotateY(180deg)" }}
+                >
+                  <span className="select-none z-10 text-lg">💻</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+              </button>
+              <div
+                onClick={(e) => handleButtonClick(e, "but-diplome")}
+                className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+              >
+                <p
+                  className={`text-base font-bold leading-snug transition-colors duration-200 ${activeId === "but-diplome" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                >
+                  Obtention du BUT
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* UTT HEADER */}
+          <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+            {expandedGroupId === "utt" && (
+              <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-40 h-[8px] bg-majorelle-blue-500 z-0 transition-colors duration-500"></div>
+            )}
+            {expandedGroupId !== "utt" && (
+              <>
+                <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-[38px] h-[8px] bg-burnt-peach-400 z-0"></div>
+                <div className="absolute left-[118px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-[10px] border-y-transparent border-l-[14px] border-l-burnt-peach-400 z-0"></div>
+              </>
+            )}
+            <div className="absolute top-[5px] h-8 flex items-end justify-center">
+              <span
+                className={`text-lg font-bold transition-colors duration-200 ${expandedGroupId === "utt" ? "text-burnt-peach-500" : "text-burnt-peach-600"}`}
+              >
+                2025 - 2028
+              </span>
+            </div>
+            <button
+              onClick={() => toggleGroup("utt")}
+              data-timeline-btn="utt-header"
+              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer transition-shadow duration-300 p-0 border-0 ${expandedGroupId === "utt" ? "shadow-[0_0_15px_rgba(215,75,40,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                <span className="select-none z-10 text-lg">🚀</span>
+                <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+              </div>
+              <div
+                className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                style={{ transform: "rotateY(180deg)" }}
+              >
+                <span className="select-none z-10 text-lg">🚀</span>
+                <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+              </div>
+            </button>
+            <div
+              onClick={() => toggleGroup("utt")}
+              </div>
+              <button
+                onClick={(e) => handleButtonClick(e, "utt-etranger")}
+                data-timeline-btn="utt-etranger"
+                className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "utt-etranger" ? "shadow-[0_0_15px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                  <span className="select-none z-10 text-lg">✈️</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+                <div
+                  className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                  style={{ transform: "rotateY(180deg)" }}
+                >
+                  <span className="select-none z-10 text-lg">✈️</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+              </button>
+              <div
+                onClick={(e) => handleButtonClick(e, "utt-etranger")}
+                className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+              >
+                <p
+                  className={`text-base font-bold leading-snug transition-colors duration-200 ${activeId === "utt-etranger" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                >
+                  Semestre étranger
+                </p>
+              </div>
+            </div>
+
+            {/* Sub-item: Stage de fin d'étude */}
+            <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+              <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-40 h-[8px] bg-majorelle-blue-500 z-0"></div>
+              <div className="absolute top-[5px] h-8 flex items-end justify-center">
+                <span
+                  className={`text-lg font-bold transition-colors duration-200 ${activeId === "utt-stage" ? "text-majorelle-blue-600" : "text-burnt-peach-600"}`}
+                >
+                  Septembre 2027
+                </span>
+              </div>
+              <button
+                onClick={(e) => handleButtonClick(e, "utt-stage")}
+                data-timeline-btn="utt-stage"
+                className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "utt-stage" ? "shadow-[0_0_15px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                  <span className="select-none z-10 text-lg">💼</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+                <div
+                  className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                  style={{ transform: "rotateY(180deg)" }}
+                >
+                  <span className="select-none z-10 text-lg">💼</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+              </button>
+              <div
+                onClick={(e) => handleButtonClick(e, "utt-stage")}
+                className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+              >
+                <p
+                  className={`text-base font-bold leading-snug transition-colors duration-200 ${activeId === "utt-stage" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                >
+                  Stage fin d'étude
+                </p>
+              </div>
+            </div>
+
+            {/* Sub-item 3: Cycle d'Ingénieur UTT */}
+            <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+              <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-[38px] h-[8px] bg-majorelle-blue-500 z-0"></div>
+              <div className="absolute left-[118px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-[10px] border-y-transparent border-l-[14px] border-l-majorelle-blue-500 z-0"></div>
+              <div className="absolute top-[5px] h-8 flex items-end justify-center">
+                <span
+                  className={`text-lg font-bold transition-colors duration-200 ${activeId === "utt-diplome" ? "text-majorelle-blue-600" : "text-burnt-peach-600"}`}
+                >
+                  2025 - 2028
+                </span>
+              </div>
+              <button
+                onClick={(e) => handleButtonClick(e, "utt-diplome")}
+                data-timeline-btn="utt-diplome"
+                className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "utt-diplome" ? "shadow-[0_0_15px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                  <span className="select-none z-10 text-lg">🎓</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+                <div
+                  className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                  style={{ transform: "rotateY(180deg)" }}
+                >
+                  <span className="select-none z-10 text-lg">🎓</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+              </button>
+              <div
+                onClick={(e) => handleButtonClick(e, "utt-diplome")}
+                className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+                  <span className="select-none z-10 text-lg">💼</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+              </button>
+              <div
+                onClick={(e) => handleButtonClick(e, "utt-stage")}
+                className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+              >
+                <p
+                  className={`text-base font-bold leading-snug transition-colors duration-200 ${activeId === "utt-stage" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                >
+                  Stage fin d'étude
+                </p>
+              </div>
+            </div>
+
+            {/* Sub-item 3: Cycle d'Ingénieur UTT */}
+            <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+              <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-[38px] h-[8px] bg-majorelle-blue-500 z-0"></div>
+              <div className="absolute left-[118px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-[10px] border-y-transparent border-l-[14px] border-l-majorelle-blue-500 z-0"></div>
+            {/* Sub-item 3: Cycle d'Ingénieur UTT */}
+            <div className="relative flex flex-col items-center text-center w-40 shrink-0 h-full overflow-visible">
+              <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-[38px] h-[8px] bg-majorelle-blue-500 z-0"></div>
+              <div className="absolute left-[118px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-[10px] border-y-transparent border-l-[14px] border-l-majorelle-blue-500 z-0"></div>
+              <div className="absolute top-[5px] h-8 flex items-end justify-center">
+                <span
+                  className={`text-lg font-bold transition-colors duration-200 ${activeId === "utt-diplome" ? "text-majorelle-blue-600" : "text-burnt-peach-600"}`}
+                >
+                  2025 - 2028
+                </span>
+              </div>
+              <button
+                onClick={(e) => handleButtonClick(e, "utt-diplome")}
+                data-timeline-btn="utt-diplome"
+                className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-lg shadow-md cursor-pointer p-0 border-0 ${activeId === "utt-diplome" ? "shadow-[0_0_15px_rgba(76,73,234,0.5)]" : "hover:shadow-[0_0_15px_rgba(223,111,83,0.4)]"}`}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div className="tile-face inset-0 bg-burnt-peach-500 flex items-center justify-center rounded-lg text-white overflow-hidden">
+                  <span className="select-none z-10 text-lg">🎓</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+                <div
+                  className="tile-face inset-0 bg-majorelle-blue-500 flex items-center justify-center rounded-lg text-white overflow-hidden"
+                  style={{ transform: "rotateY(180deg)" }}
+                >
+                  <span className="select-none z-10 text-lg">🎓</span>
+                  <div className="chromatic-aberration opacity-40 mix-blend-screen absolute inset-0 rounded-lg"></div>
+                </div>
+              </button>
+              <div
+                onClick={(e) => handleButtonClick(e, "utt-diplome")}
+                className="absolute top-[98px] w-full flex justify-center text-center px-2 cursor-pointer max-w-[180px] hover:opacity-80 transition-opacity"
+              >
+                <p
+                  className={`text-base font-bold leading-snug transition-colors duration-200 ${activeId === "utt-diplome" ? "text-majorelle-blue-600" : "text-burnt-peach-800"}`}
+                >
+                  Cycle Ingénieur UTT
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* DESKTOP POPOVER OVERLAY */}
+      {activeId !== null &&
+        activeJalon &&
+        createPortal(
+          <div
+            style={{
+              position: "absolute",
+              top: `${popoverCoords.top}px`,
+              left: `${popoverCoords.left}px`,
+              transform: "translate(-50%, -100%)",
+            }}
+            className="hidden md:block z-[9999] w-[350px] bg-neutral-900 border-2 border-burnt-peach-400 text-white rounded-xl shadow-2xl p-6 text-left transition-all duration-300 transform origin-bottom overflow-hidden scale-100 animate-in fade-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {renderPopoverContent(activeJalon)}
+          </div>,
+          document.body,
+        )}
+
+      {/* MOBILE MODAL OVERLAY */}
+      {activeId !== null && activeJalon && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 perspective-[1000px] md:hidden">
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity duration-300"
+            onClick={() => setActiveId(null)}
+          />
+          <div className="relative bg-neutral-900 border-2 border-burnt-peach-400 text-white rounded-xl shadow-2xl p-6 max-w-sm w-full z-10 overflow-hidden transform transition-all duration-300 scale-100 animate-in fade-in zoom-in-95">
+            {renderPopoverContent(activeJalon)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+          </div>,
+          document.body,
+        )}
+
+      {/* MOBILE MODAL OVERLAY */}
+      {activeId !== null && activeJalon && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 perspective-[1000px] md:hidden">
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity duration-300"
+            onClick={() => setActiveId(null)}
+          />
+          <div className="relative bg-neutral-900 border-2 border-burnt-peach-400 text-white rounded-xl shadow-2xl p-6 max-w-sm w-full z-10 overflow-hidden transform transition-all duration-300 scale-100 animate-in fade-in zoom-in-95">
+            {renderPopoverContent(activeJalon)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+

@@ -181,20 +181,20 @@ a,
 }
 
 .tile-front::before {
-  background-image: url("../images/front-tile.webp");
+  background-image: url("../public/images/front-tile.webp");
 }
 
 .tile-back::before {
-  background-image: url("../images/back-tile.webp");
+  background-image: url("../public/images/back-tile.webp");
 }
 
 @media (max-width: 576px) {
   .tile-front::before {
-    background-image: url("../images/front-mobile-tile.webp");
+    background-image: url("../public/images/front-mobile-tile.webp");
   }
 
   .tile-back::before {
-    background-image: url("../images/back-mobile-tile.webp");
+    background-image: url("../public/images/back-mobile-tile.webp");
   }
 }
 
@@ -230,4 +230,93 @@ a,
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+#project-carousel .splide__list {
+  align-items: stretch !important;
+}
+
+#project-carousel .splide__pagination {
+  bottom: 0 !important;
+}
+
+@media (max-width: 768px) {
+  #project-carousel .splide__arrow {
+    width: 3rem !important;
+    height: 3rem !important;
+  }
+  #project-carousel .splide__arrow svg {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+  }
+}
+
+/* Custom scrollbar for the desktop timeline */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(20, 20, 20, 0.5);
+  border-radius: 10px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(223, 111, 83, 0.4);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(223, 111, 83, 0.8);
+}
+
+/* Pixelated blur overlay for the projects carousel edges */
+.pixelated-blur-left,
+.pixelated-blur-right {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  /* A subtle pixel grid overlay */
+  background-image: 
+    linear-gradient(rgba(18, 18, 18, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(18, 18, 18, 0.15) 1px, transparent 1px);
+  background-size: 3px 3px;
+  width: 10%;
+  transition: width 0.3s ease;
+}
+
+.pixelated-blur-left {
+  mask-image: linear-gradient(to right, black 40%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 40%, transparent 100%);
+}
+
+.pixelated-blur-right {
+  mask-image: linear-gradient(to left, black 40%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, black 40%, transparent 100%);
+}
+
+@media (max-width: 768px) {
+  .pixelated-blur-left,
+  .pixelated-blur-right {
+    display: none;
+  }
+}
+
+.pixelated-blur-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  z-index: 10;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background-image: 
+    linear-gradient(rgba(18, 18, 18, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(18, 18, 18, 0.15) 1px, transparent 1px);
+  background-size: 3px 3px;
+  mask-image: linear-gradient(to top, black 20%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to top, black 20%, transparent 100%);
+}
+
+.splide__arrow {
+  z-index: 20 !important;
 }
